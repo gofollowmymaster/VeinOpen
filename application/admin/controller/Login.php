@@ -14,9 +14,9 @@
 
 namespace app\admin\controller;
 
-use controller\BasicAdmin;
 use service\LogService;
 use service\NodeService;
+use think\Controller;
 use think\Db;
 use think\facade\Validate;
 
@@ -28,7 +28,7 @@ use think\facade\Validate;
  * @author Anyon <zoujingli@qq.com>
  * @date 2017/02/10 13:59
  */
-class Login extends BasicAdmin
+class Login extends Controller
 {
 
     /**
@@ -69,7 +69,7 @@ class Login extends BasicAdmin
             'username' => $this->request->post('username', ''),
             'password' => $this->request->post('password', ''),
         ];
-        $validate->check($data) || $this->error($validate->getError());
+        $validate->check($data);
         // 用户信息验证
         $user = Db::name('SystemUser')->where(['username' => $data['username'], 'is_deleted' => '0'])->find();
         empty($user) && $this->error('登录账号不存在，请重新输入!');

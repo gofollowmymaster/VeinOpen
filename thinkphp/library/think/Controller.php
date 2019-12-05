@@ -34,7 +34,7 @@ class Controller
      * 验证失败是否抛出异常
      * @var bool
      */
-    protected $failException = false;
+    protected $failException = true;
 
     /**
      * 是否批量验证

@@ -19,4 +19,9 @@ return [
     'app_trace'      => false,
     // URL参数方式 0 按名称成对解析 1 按顺序解析
     'url_param_type' => 1,
+    'exception_handle'       => '\\app\\common\\exception\\ExceptionHandle',
+    'url_route_must'		=>  true,
+    'route_check_cache'	=>	true,
+
+
 ];

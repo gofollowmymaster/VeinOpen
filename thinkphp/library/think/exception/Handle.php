@@ -37,6 +37,7 @@ class Handle
      */
     public function report(Exception $exception)
     {
+        $log='';
         if (!$this->isIgnoreReport($exception)) {
             // 收集异常数据
             if (Container::get('app')->isDebug()) {
@@ -61,6 +62,7 @@ class Handle
 
             Container::get('log')->record($log, 'error');
         }
+        return $log;
     }
 
     protected function isIgnoreReport(Exception $exception)
