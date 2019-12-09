@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
-* User: zh
+ * User: zh
  * Date: 2019/9/4
  * Time: 9:57
  */
@@ -105,6 +105,10 @@ class EventDispatcher {
      * @throws \Exception
      */
     public static function trigger(Event $event) {
-        self::getInstance()->setEvent($event)->eventHandle();
+        try {
+            self::getInstance()->setEvent($event)->eventHandle();
+        } catch (\Throwable $e) {
+            report('事件' . getClass($event) . '执行错误:' . $e->getMessage());
+        }
     }
 }

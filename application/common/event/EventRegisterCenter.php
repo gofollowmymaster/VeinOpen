@@ -9,7 +9,10 @@
 namespace app\common\event;
 
 use app\common\event\events\Event;
+use app\common\event\events\LoginSuccessEvent;
+use app\common\event\listeners\LoginSuccessListener;
 use app\common\event\listeners\EventListener;
+
 
 /**
  * 事件注册中心
@@ -20,8 +23,8 @@ class EventRegisterCenter {
 
     private static $listen = [
         //指签到静脉验证成功事件
-        \Common\Service\EventService\Events\veinAuthSuccEvent::class  => [
-            \Common\Service\EventService\Listeners\VeinWriteSignSetListener::class,//指静脉4.0 写入场馆签到集合
+        LoginSuccessEvent::class  => [
+            LoginSuccessListener::class,//指静脉4.0 写入场馆签到集合
         ],
     ];
 

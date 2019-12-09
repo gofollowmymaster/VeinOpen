@@ -14,10 +14,10 @@
 
 namespace app\manager\controller;
 
-use controller\BasicAdmin;
 use service\DataService;
 use service\NodeService;
 use service\ToolsService;
+use think\Controller;
 use think\Db;
 
 /**
@@ -27,14 +27,14 @@ use think\Db;
  * @author Anyon <zoujingli@qq.com>
  * @date 2017/02/15 18:13
  */
-class Auth extends BasicAdmin
-{
+class Auth extends Controller {
 
-    /**
-     * 默认数据模型
-     * @var string
-     */
-    public $table = 'SystemAuth';
+    private $service;
+
+    public function __construct(App $app = null, AuthServer $service) {
+        parent::__construct($app);
+        $this->service = $service;
+    }
 
     /**
      * 权限列表
@@ -44,10 +44,10 @@ class Auth extends BasicAdmin
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function index()
-    {
-        $this->title = '系统权限管理';
-        return parent::_list($this->table);
+    public function index() {
+        $list = $this->service->getAuthList();
+        //        return parent::_list($this->table);
+        return $this->jsonReturn(0, '操作成功', $list);
     }
 
     /**
@@ -58,8 +58,7 @@ class Auth extends BasicAdmin
      * @throws \think\exception\DbException
      * @throws \think\Exception
      */
-    public function apply()
-    {
+    public function apply() {
         $this->title = '节点授权';
         $auth_id = $this->request->get('id', '0');
         $method = '_apply_' . strtolower($this->request->get('action', '0'));
@@ -73,8 +72,7 @@ class Auth extends BasicAdmin
      * 读取授权节点
      * @param string $auth
      */
-    protected function _apply_getnode($auth)
-    {
+    protected function _apply_getnode($auth) {
         $nodes = NodeService::get();
         $checked = Db::name('SystemAuthNode')->where(['auth' => $auth])->column('node');
         foreach ($nodes as &$node) {
@@ -90,8 +88,7 @@ class Auth extends BasicAdmin
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    protected function _apply_save($auth)
-    {
+    protected function _apply_save($auth) {
         list($data, $post) = [[], $this->request->post()];
         foreach (isset($post['nodes']) ? $post['nodes'] : [] as $node) {
             $data[] = ['auth' => $auth, 'node' => $node];
@@ -104,11 +101,10 @@ class Auth extends BasicAdmin
     /**
      * 节点数据拼装
      * @param array $nodes
-     * @param int $level
+     * @param int   $level
      * @return array
      */
-    protected function _apply_filter($nodes, $level = 1)
-    {
+    protected function _apply_filter($nodes, $level = 1) {
         foreach ($nodes as $key => $node) {
             if (!empty($node['_sub_']) && is_array($node['_sub_'])) {
                 $node[$key]['_sub_'] = $this->_apply_filter($node['_sub_'], $level + 1);
@@ -125,8 +121,7 @@ class Auth extends BasicAdmin
      * @throws \think\exception\DbException
      * @throws \think\Exception
      */
-    public function add()
-    {
+    public function add() {
         return $this->_form($this->table, 'form');
     }
 
@@ -138,8 +133,7 @@ class Auth extends BasicAdmin
      * @throws \think\exception\DbException
      * @throws \think\Exception
      */
-    public function edit()
-    {
+    public function edit() {
         return $this->_form($this->table, 'form');
     }
 
@@ -148,8 +142,7 @@ class Auth extends BasicAdmin
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    public function forbid()
-    {
+    public function forbid() {
         if (DataService::update($this->table)) {
             $this->success("权限禁用成功！", '');
         }
@@ -161,8 +154,7 @@ class Auth extends BasicAdmin
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    public function resume()
-    {
+    public function resume() {
         if (DataService::update($this->table)) {
             $this->success("权限启用成功！", '');
         }
@@ -174,8 +166,7 @@ class Auth extends BasicAdmin
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    public function del()
-    {
+    public function del() {
         if (DataService::update($this->table)) {
             $where = ['auth' => $this->request->post('id')];
             Db::name('SystemAuthNode')->where($where)->delete();

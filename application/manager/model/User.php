@@ -1,0 +1,28 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: zh
+ * Date: 2019/12/6
+ * Time: 17:49
+ * description:描述
+ */
+
+namespace app\manager\model;
+
+use think\Model;
+
+class Menu extends Model {
+    protected $table = 'system_menu';
+    protected $pk    = 'id';
+
+    /**
+     * 模型初始化
+     * 模型初始化方法通常用于注册模型的事件操作。
+     */
+    protected static function init() {
+        //TODO:初始化内容
+    }
+    public function updateMenuById($id,$data){
+        return $this->save($data,['id' => 1]);
+    }
+}

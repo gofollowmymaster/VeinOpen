@@ -8,8 +8,7 @@
 
 namespace app\common\event\listeners;
 
-use Common\Service\EventService\Events\Event;
-
+use app\common\event\events\Event;
 /**
  * Class EventListener
  * @package Common\Service\EventService\Listeners
