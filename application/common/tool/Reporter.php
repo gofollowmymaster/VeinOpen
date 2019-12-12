@@ -21,12 +21,11 @@ class Reporter {
     private $redis;
     private $isAsyn = false;
 
-
     private function __construct(array $config) {
 
         $this->config = $config['messenger']['groups'];
         $this->isAsyn = $config['asyn_mode'] ?? false;
-        $messenger = 'app\common\tool\messenger\\' . $config['messenger']['name'];
+        $messenger = 'app\common\tool\messenger\\' . $config['messenger']['type'];
         $this->messenger = new $messenger($this->config);
     }
 
@@ -44,7 +43,7 @@ class Reporter {
     }
 
 
-    public function sendText(string $message, $destination = 'default') {
+    public function Report(string $message, $destination = 'default') {
         $message = self::buildMessage($message, $destination);
         try {
             $destination = is_array($destination) ?: [$destination];
@@ -98,10 +97,7 @@ class Reporter {
 
     private function buildMessage($message, $destination) {
         $keywords = $this->config[$destination]['keywords'];
-        $message = $keywords . "\n\n" . $message . "\n";
-        $message .= "\n请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
-        $message .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
-        //        $message .= "\n请求信息:\n" . request();
+        $message = $keywords . "\n" . $message . "\n";
         Log::error($message);
         return $message;
     }

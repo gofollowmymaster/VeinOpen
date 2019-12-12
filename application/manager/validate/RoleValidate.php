@@ -11,18 +11,16 @@ namespace app\manager\validate;
 
 use think\Validate;
 
-class MenuValidate extends Validate {
+class RoleValidate extends Validate {
     protected $rule =   [
-        'pid' => 'number',
         'title' => 'chsDash',
-        'url' => 'require',
-//        'id' => 'number',
+        'desc' => 'chsDash',
+        'sort' => 'number',
     ];
 
     protected $message  =   [
-        'pid.number' => '父节点ID无效！',
-        'title.chsDash'     => '节点名称无效!',
-        'url.require' => 'url不能为空！',
-//        'id.number'     => '节点ID无效！',
+        'title.chsDash' => '角色名格式错误',
+        'desc.chsDash'     => '描述信息有非法字符!',
+        'sort.number' => '排序不能为空！',
     ];
 }

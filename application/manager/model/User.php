@@ -10,10 +10,17 @@
 namespace app\manager\model;
 
 use think\Model;
+use think\model\concern\SoftDelete;
 
-class Menu extends Model {
-    protected $table = 'system_menu';
+class User extends Model {
+    use SoftDelete;
+    protected $deleteTime = 'delete_at';
+    protected $defaultSoftDelete = '0';
+
+    protected $table = 'system_user';
     protected $pk    = 'id';
+
+    const SUPERVISOR='10000';
 
     /**
      * 模型初始化
@@ -22,7 +29,5 @@ class Menu extends Model {
     protected static function init() {
         //TODO:初始化内容
     }
-    public function updateMenuById($id,$data){
-        return $this->save($data,['id' => 1]);
-    }
+
 }

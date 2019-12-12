@@ -10,6 +10,7 @@ namespace app\common\event;
 
 use app\common\event\events\Event;
 use app\common\event\listeners\EventListener;
+use app\common\exception\EventException;
 
 /**
  * 事件分发(调度)器
@@ -63,17 +64,17 @@ class EventDispatcher {
         while ($listener = array_shift($listeners)) {
             try {
                 if (!class_exists($listener)) {
-                    throw new \Exception('监听者不存在');
+                    throw new EventException('监听者不存在');
                 }
                 $listener = new $listener();
                 if (!($listener instanceof EventListener)) {
-                    throw new \Exception('非法的监听者:' . getclass($listener));
+                    throw new EventException('非法的监听者:' . getclass($listener));
                 }
                 $listener->handle($this->event);
-            } catch (\Exception $e) {
-                $this->expectinos[] = $e;
+            } catch (\Throwable $e) {
+                $this->expectinos[] = exceptionToArray($e);
                 if (self::$needAbort) {
-                    throw new \Exception('监听者执行中断:异常信息:' . json_encode($this->expectinos));
+                    throw new EventException('监听者执行中断:异常信息:' . json_encode($this->expectinos));
                 }
             }
         }
@@ -93,7 +94,7 @@ class EventDispatcher {
      */
     private function _after() {
         if (count($this->expectinos) > 0) {
-            logw('监听者执行异常:异常信息:' . json_encode($this->expectinos), Event::logFileName);
+            report('监听者执行异常:异常信息:' . json_encode($this->expectinos), Event::logFileName);
             $this->expectinos = [];
         }
         $this->event = null;

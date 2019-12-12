@@ -14,6 +14,7 @@
 
 namespace app\admin\middleware;
 
+use app\common\exception\AuthException;
 use service\NodeService;
 use think\Db;
 use think\Request;
@@ -39,12 +40,11 @@ class Auth
         $access = $this->buildAuth($node = NodeService::parseNodeStr("{$module}/{$controller}/{$action}"));
         // 登录状态检查
         if (!empty($access['is_login']) && !session('user')) {
-            $msg = ['status' => 0, 'msg' => '抱歉，您还没有登录获取访问权限！', 'url' => url('@admin/login')];
-            return json($msg);
+            throw new AuthException('抱歉，您还没有登录获取访问权限！');
         }
         // 访问权限检查
         if (!empty($access['is_auth']) && !auth($node)) {
-            return json(['status' => 0, 'msg' => '抱歉，您没有访问该模块的权限！']);
+            throw new AuthException('抱歉，您没有访问该模块的权限！');
         }
         // 模板常量声明
         app('view')->init(config('template.'))->assign(['classuri' => NodeService::parseNodeStr("{$module}/{$controller}")]);

@@ -23,7 +23,7 @@ class RedisClient
      * @param string $key
      * @return object
      */
-    static function getInstance($configs)
+    public static function getInstance($configs)
     {
         if ( !extension_loaded('redis') ) {
             return false;
@@ -363,20 +363,57 @@ class RedisClient
         return $this->getRedis()->lIndex($key, $index);
     }
 
-    /**
-     * 添加并发redis锁机制
-     * redis 字符串（String） 类型
-     * nx 是「 if N ot e X ists」的缩写,
-     * 从 2.6.12 起， SET 涵盖了 SETEX 的功能，并且 SET 本身已经包含了设置过期时间的功能
-     * @param $key
-     * @param $value
-     * @param $exp 过期时间
-     * @return true
-     * dj 2017-06-29 add
-     */
-    public function setLockKey($key,$value,$exp=array())
+
+
+    public function acquire_lock($lock_name, $acquire_time = 3, $lock_timeout = 10)
     {
-        $redis = $this->getRedis($key);
-        return $redis->set($key,$value,$exp);
+
+        $identifier   = md5($_SERVER['REQUEST_TIME'] . mt_rand(1, 10000000));
+        $lock_name    = 'lock:' . $lock_name;
+        $lock_timeout = intval(ceil($lock_timeout));
+        $end_time     = time() + $acquire_time;
+        while (time() < $end_time) {
+            $script = <<<luascript
+                 local result = redis.call('setnx',KEYS[1],ARGV[1]);
+                    if result == 1 then
+                        redis.call('expire',KEYS[1],ARGV[2])
+                        return 1
+                    elseif redis.call('ttl',KEYS[1]) == -1 then
+                       redis.call('expire',KEYS[1],ARGV[2])
+                       return 0
+                    end
+                    return 0
+luascript;
+            $result = $this->getRedis()->evaluate($script, array($lock_name, $identifier, $lock_timeout), 1);
+            if ($result == '1') {
+                return $identifier;
+            }
+            usleep(100000);
+        }
+        return false;
+    }
+
+
+    public function release_lock($lock_name, $identifier)
+    {
+        $lock_name = 'lock:' . $lock_name;
+        while (true) {
+            $script = <<<luascript
+                local result = redis.call('get',KEYS[1]);
+                if result == ARGV[1] then
+                    if redis.call('del',KEYS[1]) == 1 then
+                        return 1;
+                    end
+                end
+                return 0
+luascript;
+            $result = $this->getRedis()->evaluate($script, array($lock_name, $identifier), 1);
+            if ($result == 1) {
+                return true;
+            }
+            break;
+        }
+        //进程已经失去了锁
+        return false;
     }
 }

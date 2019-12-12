@@ -11,8 +11,8 @@ namespace app\manager\model;
 
 use think\Model;
 
-class Menu extends Model {
-    protected $table = 'system_menu';
+class Node extends Model {
+    protected $table = 'system_node';
     protected $pk    = 'id';
 
     /**
@@ -21,6 +21,10 @@ class Menu extends Model {
      */
     protected static function init() {
         //TODO:初始化内容
+    }
+    public function role()
+    {
+        return $this->belongsToMany('Role','\\app\\model\\Access');
     }
 
 }

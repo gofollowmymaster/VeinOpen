@@ -2,15 +2,15 @@
 /**
  * Created by PhpStorm.
 * User: zh
- * Date: 2019/9/4
+ * Date: 2019/12/6
  * Time: 14:16
  */
 
 namespace app\common\event\events;
 
-class CardSignSuccEvent extends Event {
+class LoginSuccessEvent extends Event {
 
-    public function __construct(int $signId) {
-        $this->eventInfo = M('signLog')->where(['id' => $signId])->find();
+    public function __construct(array $user) {
+        $this->eventInfo = $user;
     }
 }

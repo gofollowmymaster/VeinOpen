@@ -6,11 +6,10 @@
  * Time: 18:12
  */
 
-namespace Common\Service\Device\Request;
+namespace app\common\dataset;
 
-use Common\Exception\WarringException;
-use Common\Traits\SingletonTrait;
-use Common\Traits\DataSetTrait;
+use  app\common\traits\DataSetTrait;
+use  app\common\traits\SingletonTrait;
 
 class DeviceInfo {
     use SingletonTrait;

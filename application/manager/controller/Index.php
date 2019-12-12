@@ -1,109 +1,75 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | ThinkAdmin
-// +----------------------------------------------------------------------
-// | 版权所有 2014~2017 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
-// +----------------------------------------------------------------------
-// | 官方网站: http://think.ctolog.com
-// +----------------------------------------------------------------------
-// | 开源协议 ( https://mit-license.org )
-// +----------------------------------------------------------------------
-// | github开源项目：https://github.com/zoujingli/ThinkAdmin
-// +----------------------------------------------------------------------
 
 namespace app\manager\controller;
 
 use app\common\exception\AuthException;
-use app\common\service\DataService;
-use app\common\service\NodeService;
+
+use app\manager\service\User as UserServer;
+use app\manager\service\Menu as MenuServer;
 use think\App;
 use think\Controller;
 use think\Db;
-use app\common\exception\WarringException;
 
-/**
- * 后台入口
- * Class Index
- * @package app\admin\controller
- * @author Anyon <zoujingli@qq.com>
- * @date 2017/02/15 10:41
- */
+
 class Index extends Controller {
 
     /**
-     * 后台框架布局
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @param MenuServer $menuServer
+     * @return \think\response\Json
+     * @throws AuthException
      */
-    public function menus() {
-        NodeService::applyAuthNode();
-        $list = (array)Db::name('SystemMenu')->where(['status' => '1'])->order('sort asc,id asc')->select();
-        $menuServer=new \app\manager\service\Menu();
-        $menus = $menuServer->buildMenuData(arr2tree($list), NodeService::get(), !!session('user'));
+    public function menus(MenuServer $menuServer) {
+        //        NodeService::applyAuthNode();
+
+        $menus = $menuServer->getUserMenuTree(!!session('user'));
         if (empty($menus) && !session('user.id')) {
-            return json(['status'=>1,'没有任何权限']);
+            throw new AuthException('没有任何权限');
         }
-        return json($menus);
+        return $this->jsonReturn(0, '操作成功', $menus);
     }
 
 
-
     /**
-     * 主机信息显示
-     * @return string
-     */
-    public function main() {
-        $_version = Db::query('select version() as ver');
-        return $this->fetch('', ['title'     => '后台首页', 'think_ver' => App::VERSION,
-                                 'mysql_ver' => array_pop($_version)['ver'],]);
-    }
-
-    /**
-     * 修改密码
-     * @return array|string
-     * @throws \think\Exception
+     * @param UserServer $userServer
+     * @return \think\response\Json
+     * @throws AuthException
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
-     * @throws \think\exception\PDOException
      */
-    public function pass() {
-        if (intval($this->request->request('id')) !== intval(session('user.id'))) {
-            throw new AuthException('只能修改当前用户的密码');
-        }
-
+    public function pass(UserServer $userServer) {
         $data = $this->request->post();
+        $userId = session('user.id');
         if ($data['password'] !== $data['repassword']) {
             throw new AuthException('两次输入的密码不一致，请重新输入！');
         }
-        $user = Db::name('SystemUser')->where('id', session('user.id'))->find();
+        $user = Db::name('SystemUser')->where('id', $userId)->find();
         if (md5($data['oldpassword']) !== $user['password']) {
-            throw new AuthException('旧密码输入失败,请重新输入');
+            throw new AuthException('旧密码错误,请重新输入');
         }
-        $res = DataService::save('SystemUser', ['id' => session('user.id'), 'password' => md5($data['password'])]);
-        if (!$res) {
-            throw new AuthException('密码修改失败，请稍候再试！');
-        }
-        return json(['status' => 0, 'msg' => '密码修改成功，下次请使用新密码登录！']);
+        $userServer->updateUserById($userId, [ 'password' => md5($data['password'])]);
+
+        return $this->jsonReturn(0, '密码修改成功，下次请使用新密码登录！');
     }
 
     /**
-     * 修改资料
-     * @return array|string
-     * @throws \think\Exception
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * @param UserServer $userServer
+     * @return \think\response\Json
      */
-    public function info() {
-        $userId = $this->request->request('id');
-        if (intval($userId) !== intval(session('user.id'))) {
-            throw new AuthException('只能修改当前用户的资料');
-        }
-        $info = DB::name('SystemUser')->where('id', $userId)->field('id,username,mail,phone,desc,status')->find();
-        return json($info);
+    public function info(UserServer $userServer) {
+        $userId = session('user.id');
+        $param = $this->request->post();
+        $this->validate($param, 'app\manager\validate\UserValidate');
+        $userServer->updateUserById($userId,$param);
+        return $this->jsonReturn();
     }
 
+    /**
+     * miss路由 所有错误路由转发到这儿
+     * @return \think\response\Json
+     */
+    public function miss() {
+        return $this->jsonReturn(1, '请求地址错误');
+    }
 }

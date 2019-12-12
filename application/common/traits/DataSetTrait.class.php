@@ -8,7 +8,9 @@
 
 namespace app\common\traits;
 
-use Common\Exception\WarringException;
+
+
+use app\common\exception\WarringException;
 
 Trait DataSetTrait {
 
@@ -57,4 +59,5 @@ Trait DataSetTrait {
     public function toArray() {
         return $this->dataFilter();
     }
+
 }

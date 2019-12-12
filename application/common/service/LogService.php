@@ -12,7 +12,8 @@
 // | github开源项目：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace service;
+namespace app\common\service;
+
 
 use think\Db;
 use think\db\Query;

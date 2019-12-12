@@ -1,31 +1,19 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | ThinkAdmin
-// +----------------------------------------------------------------------
-// | 版权所有 2014~2017 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
-// +----------------------------------------------------------------------
-// | 官方网站: http://think.ctolog.com
-// +----------------------------------------------------------------------
-// | 开源协议 ( https://mit-license.org )
-// +----------------------------------------------------------------------
-// | github开源项目：https://github.com/zoujingli/ThinkAdmin
-// +----------------------------------------------------------------------
-
 use app\common\service\DataService;
 use app\common\service\NodeService;
 use think\Db;
 
 /**
  * 打印输出数据到文件
- * @param mixed $data 输出的数据
- * @param bool $force 强制替换
+ * @param mixed       $data 输出的数据
+ * @param bool        $force 强制替换
  * @param string|null $file
  */
-function p($data, $force = false, $file = null)
-{
+function p($data, $force = false, $file = null) {
     is_null($file) && $file = env('runtime_path') . date('Ymd') . '.txt';
-    $str = (is_string($data) ? $data : (is_array($data) || is_object($data)) ? print_r($data, true) : var_export($data, true)) . PHP_EOL;
+    $str = (is_string($data) ? $data :
+            (is_array($data) || is_object($data)) ? print_r($data, true) : var_export($data, true)) . PHP_EOL;
     $force ? file_put_contents($file, $str) : file_put_contents($file, $str, FILE_APPEND);
 }
 
@@ -34,21 +22,19 @@ function p($data, $force = false, $file = null)
  * @param string $node
  * @return bool
  */
-function auth($node)
-{
+function auth($node) {
     return NodeService::checkAuthNode($node);
 }
 
 /**
  * 设备或配置系统参数
  * @param string $name 参数名称
- * @param bool $value 默认是null为获取值，否则为更新
+ * @param bool   $value 默认是null为获取值，否则为更新
  * @return string|bool
  * @throws \think\Exception
  * @throws \think\exception\PDOException
  */
-function sysconf($name, $value = null)
-{
+function sysconf($name, $value = null) {
     static $config = [];
     if ($value !== null) {
         list($config, $data) = [[], ['name' => $name, 'value' => $value]];
@@ -66,8 +52,7 @@ function sysconf($name, $value = null)
  * @param string $format 输出格式
  * @return false|string
  */
-function format_datetime($datetime, $format = 'Y年m月d日 H:i:s')
-{
+function format_datetime($datetime, $format = 'Y年m月d日 H:i:s') {
     return date($format, strtotime($datetime));
 }
 
@@ -76,8 +61,7 @@ function format_datetime($datetime, $format = 'Y年m月d日 H:i:s')
  * @param string $string
  * @return string
  */
-function encode($string)
-{
+function encode($string) {
     list($chars, $length) = ['', strlen($string = iconv('utf-8', 'gbk', $string))];
     for ($i = 0; $i < $length; $i++) {
         $chars .= str_pad(base_convert(ord($string[$i]), 10, 36), 2, 0, 0);
@@ -90,8 +74,7 @@ function encode($string)
  * @param string $string
  * @return string
  */
-function decode($string)
-{
+function decode($string) {
     $chars = '';
     foreach (str_split($string, 2) as $char) {
         $chars .= chr(intval(base_convert($char, 36, 10)));
@@ -104,8 +87,7 @@ function decode($string)
  * @param string $url 远程图片地址
  * @return string
  */
-function local_image($url)
-{
+function local_image($url) {
     return \service\FileService::download($url)['url'];
 }
 
@@ -296,11 +278,101 @@ function parseKeyDot(array $data, $rule) {
  * 获取redis连接
  * @return object
  */
-function redis(){
-    $config=config('redis.');
+function redis() {
+    $config = config('redis.');
     return \app\common\tool\RedisClient::getInstance($config)->getRedis();
 }
 
+/**
+ * @param $message
+ * @throws Exception
+ */
+function report(string $content) {
+    $config = \think\Container::get('app')->config('reporter.');
+    $message = "请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+    $message .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
+    $message .= "\n请求异常:" . $content;
+    //    $message .= "\n请求信息:\n" . serialize(request());
+    \app\common\tool\Reporter::getInstance($config)->Report($message);
+}
+
+/**
+ * 事件触发
+ * @param $event
+ */
+function triggerEvent(\app\common\event\events\Event $event) {
+    app\common\event\EventDispatcher::trigger($event);
+}
+
+/**
+ * 获取对象类名
+ * @param $object
+ * @return string
+ */
+function getClass($object) {
+    $object = is_object($object) ? get_class($object) : $object;
+    return (string)$object;
+}
+
+function exceptionToArray(\Exception $exception) {
+    return ['file'    => $exception->getFile(), 'line' => $exception->getLine(), 'code' => $exception->getCode(),
+            'message' => $exception->getMessage()];
+}
+
+function isEmptyInDb(array $data, string $message) {
+    if (empty($data)) {
+        $sql = Db::getLastSql();
+        throw new \think\exception\DbException($message . ':' . $sql);
+    }
+}
+
+function isModelFailed($res, string $message) {
+    if ($res === false) {
+        $sql = Db::getLastSql();
+        throw new \think\exception\DbException($message . ':' . $sql);
+    }
+}
+
+function requestInfo() {
+    return ['request' => request()->param(), 'response' => response()->getData(), 'user' => session('user')];
+}
+
+function arrayToStr(array $array) {
+    $string = '';
+    if(count($array)){
+        foreach ($array as $key => $value) {
+            $string .= "\n".$key;
+            if (is_array($value)) {
+                $string.=':'.arrayToStr($value);
+            } else {
+                $string.= '='.$value;
+            }
+        }
+    }
+    return $string;
+}
+
+function getRealIp() {
+    static $ip = false;
+    if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+        $ip = $_SERVER["HTTP_CLIENT_IP"];
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(", ", $_SERVER['HTTP_X_FORWARDED_FOR']);
+        if ($ip) {
+            array_unshift($ips, $ip);
+            $ip = false;
+        }
+        for ($i = 0; $i < count($ips); $i++) {
+            if (!preg_match("/^(10|172\.16|192\.168)\./", $ips[$i])) {
+                $ip = $ips[$i];
+                break;
+            }
+        }
+    }
+    $ip = $ip ? $ip : $_SERVER['REMOTE_ADDR'];
+    return $ip;
+}
 
 function tcpPost($sendMsg, $ip, $port) {
 
@@ -310,14 +382,12 @@ function tcpPost($sendMsg, $ip, $port) {
         think\facade\Log::error("TCP create failed", 'tcp-error');
         return false;
     }
-
     $connection = socket_connect($socket, $ip, $port);
-
     if (!$connection) {
         think\facade\Log::error("TCP connect failed", 'tcp-error');
         return false;
     }
-    $write_rst = socket_write($socket, $sendMsg . "|end|");
+    socket_write($socket, $sendMsg . "|end|");
 
     $buff = socket_read($socket, 1024, PHP_NORMAL_READ);
 

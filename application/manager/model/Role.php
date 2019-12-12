@@ -11,7 +11,7 @@ namespace app\manager\model;
 
 use think\Model;
 
-class Auth extends Model {
+class Role extends Model {
     protected $table = 'system_auth';
     protected $pk    = 'id';
 
@@ -22,5 +22,10 @@ class Auth extends Model {
     protected static function init() {
         //TODO:初始化内容
     }
+
+//    public function node()
+//    {
+//        return $this->belongsToMany('Node','\\app\\model\\Access');
+//    }
 
 }

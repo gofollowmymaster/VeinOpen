@@ -6,11 +6,10 @@
  * Time: 18:12
  */
 
-namespace app\common\exception;
-namespace Common\Service\Device\Request;
+namespace app\common\dataset;
 
-use Common\Traits\DataSetTrait;
-use Common\Traits\SingletonTrait;
+use  app\common\traits\DataSetTrait;
+use  app\common\traits\SingletonTrait;
 
 class DeviceAuth {
     use SingletonTrait;

@@ -6,9 +6,11 @@
  * Time: 17:58
  */
 
-namespace Common\Service\Device\Request;
 
-use Common\Traits\SingletonTrait;
+namespace app\common\dataset;
+
+use app\common\exception\WarringException;
+use  app\common\traits\SingletonTrait;
 
 class RequestInfo {
     use SingletonTrait;
@@ -33,7 +35,7 @@ class RequestInfo {
 
     public function __set($name, $value) {
         if (in_array($name, $this->canNotModifyFields)&&$this->data[$name]) {
-            throw new \Exception('无权修改该参数:' . $name);
+            throw new WarringException('无权修改该参数:' . $name);
         }
         $this->data[$name] = $value;
     }

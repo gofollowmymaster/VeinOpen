@@ -9,11 +9,10 @@
 
 return [
     'master'   => [
-        ['host' => '127.0.0.1', 'auth' => 'secret', 'port' => 6379,],//测试服内网ip
+        ['host' =>  env('redis.master_hostname','127.0.0.1'), 'auth' =>  env('redis.master_auth','secret'), 'port' =>  env('redis.master_hostport',6379),],//测试服内网ip
     ],
     'slave' => [
         [
-            'host' => '127.0.0.1', 'auth' => 'secret', 'port' => 6379,
-        ],
+            env('redis.slave_hostname','127.0.0.1'), 'auth' =>  env('redis.slave_auth','secret'), 'port' =>  env('redis.slave_hostport',6379),],//测试服内网ip
     ],
 ];

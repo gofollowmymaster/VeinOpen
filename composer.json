@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "php": ">=5.6.0",
+    "php": ">=7.0",
     "qiniu/php-sdk": "^7.2",
     "endroid/qr-code": "^1.9",
     "topthink/framework": "^5.1",

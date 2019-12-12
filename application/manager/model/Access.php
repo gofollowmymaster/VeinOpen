@@ -10,9 +10,10 @@
 namespace app\manager\model;
 
 use think\Model;
+use think\model\Pivot;
 
-class Menu extends Model {
-    protected $table = 'system_menu';
+class Access extends Pivot {
+    protected $table = 'system_auth_node';
     protected $pk    = 'id';
 
     /**
@@ -22,5 +23,7 @@ class Menu extends Model {
     protected static function init() {
         //TODO:初始化内容
     }
+
+
 
 }

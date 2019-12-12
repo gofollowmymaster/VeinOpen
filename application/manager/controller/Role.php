@@ -1,178 +1,119 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | ThinkAdmin
-// +----------------------------------------------------------------------
-// | 版权所有 2014~2017 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
-// +----------------------------------------------------------------------
-// | 官方网站: http://think.ctolog.com
-// +----------------------------------------------------------------------
-// | 开源协议 ( https://mit-license.org )
-// +----------------------------------------------------------------------
-// | github开源项目：https://github.com/zoujingli/ThinkAdmin
-// +----------------------------------------------------------------------
+
 
 namespace app\manager\controller;
 
-use service\DataService;
-use service\NodeService;
-use service\ToolsService;
+use app\manager\service\Role as RoleServer;
+use think\App;
 use think\Controller;
-use think\Db;
 
 /**
- * 系统权限管理控制器
- * Class Auth
- * @package app\admin\controller
- * @author Anyon <zoujingli@qq.com>
- * @date 2017/02/15 18:13
+ * 系统角色管理控制器
+ * Class Role
+ * @package app\manager\controller
  */
-class Auth extends Controller {
+class Role extends Controller {
 
     private $service;
 
-    public function __construct(App $app = null, AuthServer $service) {
+    public function __construct(App $app = null, RoleServer $service) {
         parent::__construct($app);
         $this->service = $service;
     }
 
     /**
-     * 权限列表
-     * @return array|string
-     * @throws \think\Exception
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * 角色列表
+     * @return \think\response\Json
      */
     public function index() {
-        $list = $this->service->getAuthList();
-        //        return parent::_list($this->table);
+        $list = $this->service->getRoleList();
         return $this->jsonReturn(0, '操作成功', $list);
     }
 
     /**
-     * 权限授权
-     * @return string
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     * @throws \think\Exception
+     * 添加角色
+     * @return \think\response\Json
      */
-    public function apply() {
-        $this->title = '节点授权';
-        $auth_id = $this->request->get('id', '0');
-        $method = '_apply_' . strtolower($this->request->get('action', '0'));
-        if (method_exists($this, $method)) {
-            return $this->$method($auth_id);
-        }
-        return $this->_form($this->table, 'apply');
+    public function save() {
+        $param = $this->request->param();
+        $this->validate($param, 'app\manager\validate\RoleValidate');
+
+        //执行保存
+        $this->service->addRole($param);
+        return $this->jsonReturn();
+    }
+
+    /**
+     * 编辑角色
+     * @param $id
+     * @return \think\response\Json
+     */
+    public function edit($id) {
+        $role=$this->service->getRoleById($id);
+        return $this->jsonReturn(0, '操作成功', $role);
+    }
+
+    /**
+     * 修改角色
+     * @param $id
+     * @return \think\response\Json
+     */
+    public function update($id) {
+        //验证数据
+        $param = $this->request->param();
+        $this->validate($param, 'app\manager\validate\RoleValidate');
+
+        //执行更新
+        $this->service->updateRoleById($id, $param);
+        //返回数据
+        return $this->jsonReturn();
+    }
+
+    /**
+     * 删除角色
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function delete($id) {
+
+        $this->service->delRoleById($id);
+        //返回数据
+        return $this->jsonReturn();
+    }
+
+    /**
+     * 菜单角色
+     * @param $id
+     * @return \think\response\Json
+     */
+    protected function forbid($id) {
+        $this->service->updateRoleById($id, ['status'=>0]);
+        //返回数据
+        return $this->jsonReturn();
     }
 
     /**
      * 读取授权节点
      * @param string $auth
      */
-    protected function _apply_getnode($auth) {
-        $nodes = NodeService::get();
-        $checked = Db::name('SystemAuthNode')->where(['auth' => $auth])->column('node');
-        foreach ($nodes as &$node) {
-            $node['checked'] = in_array($node['node'], $checked);
-        }
-        $all = $this->_apply_filter(ToolsService::arr2tree($nodes, 'node', 'pnode', '_sub_'));
-        $this->success('获取节点成功！', '', $all);
+    public function getAuthNode()
+    {
+        $auth=$this->request->get('id');
+        $result = $this->service->getAuthNode($auth);
+        return $this->jsonReturn(0, '操作成功', $result);
     }
 
     /**
      * 保存授权节点
-     * @param string $auth
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
+     * @return \think\response\Json
      */
-    protected function _apply_save($auth) {
-        list($data, $post) = [[], $this->request->post()];
-        foreach (isset($post['nodes']) ? $post['nodes'] : [] as $node) {
-            $data[] = ['auth' => $auth, 'node' => $node];
-        }
-        Db::name('SystemAuthNode')->where(['auth' => $auth])->delete();
-        Db::name('SystemAuthNode')->insertAll($data);
-        $this->success('节点授权更新成功！', '');
-    }
+    public function saveAuthNode(){
+        $auth=$this->request->param('id');
+        $nodes=$this->request->post('nodes')?:[];
+        $this->service->saveAuthNode($auth,$nodes);
 
-    /**
-     * 节点数据拼装
-     * @param array $nodes
-     * @param int   $level
-     * @return array
-     */
-    protected function _apply_filter($nodes, $level = 1) {
-        foreach ($nodes as $key => $node) {
-            if (!empty($node['_sub_']) && is_array($node['_sub_'])) {
-                $node[$key]['_sub_'] = $this->_apply_filter($node['_sub_'], $level + 1);
-            }
-        }
-        return $nodes;
-    }
-
-    /**
-     * 权限添加
-     * @return array|string
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     * @throws \think\Exception
-     */
-    public function add() {
-        return $this->_form($this->table, 'form');
-    }
-
-    /**
-     * 权限编辑
-     * @return array|string
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     * @throws \think\Exception
-     */
-    public function edit() {
-        return $this->_form($this->table, 'form');
-    }
-
-    /**
-     * 权限禁用
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    public function forbid() {
-        if (DataService::update($this->table)) {
-            $this->success("权限禁用成功！", '');
-        }
-        $this->error("权限禁用失败，请稍候再试！");
-    }
-
-    /**
-     * 权限恢复
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    public function resume() {
-        if (DataService::update($this->table)) {
-            $this->success("权限启用成功！", '');
-        }
-        $this->error("权限启用失败，请稍候再试！");
-    }
-
-    /**
-     * 权限删除
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    public function del() {
-        if (DataService::update($this->table)) {
-            $where = ['auth' => $this->request->post('id')];
-            Db::name('SystemAuthNode')->where($where)->delete();
-            $this->success("权限删除成功！", '');
-        }
-        $this->error("权限删除失败，请稍候再试！");
+        return $this->jsonReturn(0,'节点授权更新成功！');
     }
 
 }

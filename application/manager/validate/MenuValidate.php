@@ -11,16 +11,18 @@ namespace app\manager\validate;
 
 use think\Validate;
 
-class LoginValidate extends Validate {
+class MenuValidate extends Validate {
     protected $rule =   [
-        'username' => 'require|min:4',
-        'password' => 'require|min:4',
+        'pid' => 'number',
+        'title' => 'chsDash',
+        'url' => 'require',
+//        'id' => 'number',
     ];
 
     protected $message  =   [
-        'username.require' => '登录账号不能为空！',
-        'username.min'     => '登录账号长度不能少于4位有效字符！',
-        'password.require' => '登录密码不能为空！',
-        'password.min'     => '登录密码长度不能少于4位有效字符！',
+        'pid.number' => '父节点ID无效！',
+        'title.chsDash'     => '节点名称无效!',
+        'url.require' => 'url不能为空！',
+//        'id.number'     => '节点ID无效！',
     ];
 }

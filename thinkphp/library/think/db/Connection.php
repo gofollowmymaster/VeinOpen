@@ -19,6 +19,7 @@ use think\Db;
 use think\db\exception\BindParamException;
 use think\Debug;
 use think\Exception;
+use think\exception\DbException;
 use think\exception\PDOException;
 use think\Loader;
 
@@ -349,6 +350,7 @@ abstract class Connection
 
         if (strpos($tableName, ',')) {
             // 多表不获取字段信息
+            //todo 抛出异常
             return false;
         } else {
             $tableName = $this->parseSqlTable($tableName);
@@ -644,7 +646,8 @@ abstract class Connection
         $this->initConnect($master);
 
         if (!$this->linkID) {
-            return false;
+            $errorLog=$this->error();
+            throw new DbException('connection link not losed '.$errorLog);
         }
 
         // 记录SQL语句
@@ -683,20 +686,14 @@ abstract class Connection
             if ($this->isBreak($e)) {
                 return $this->close()->query($sql, $bind, $master, $pdo);
             }
-
-            throw new PDOException($e, $this->config, $this->getLastsql());
+            $errorLog=$this->error();
+            throw new PDOException($e, $this->config, $this->getLastsql().$errorLog);
         } catch (\Throwable $e) {
             if ($this->isBreak($e)) {
                 return $this->close()->query($sql, $bind, $master, $pdo);
             }
-
-            throw $e;
-        } catch (\Exception $e) {
-            if ($this->isBreak($e)) {
-                return $this->close()->query($sql, $bind, $master, $pdo);
-            }
-
-            throw $e;
+            $errorLog=$this->error();
+            throw new DbException($e->getMessage().$errorLog, $this->config, $this->getLastsql());
         }
     }
 
@@ -711,13 +708,15 @@ abstract class Connection
      * @throws \PDOException
      * @throws \Exception
      * @throws \Throwable
+     * modifyed by zh sql执行失败统一抛出异常
      */
     public function execute($sql, $bind = [], Query $query = null)
     {
         $this->initConnect(true);
 
         if (!$this->linkID) {
-            return false;
+            $errorLog=$this->error();
+            throw new DbException('connection link not losed '.$errorLog);
         }
 
         // 记录SQL语句
@@ -761,19 +760,14 @@ abstract class Connection
                 return $this->close()->execute($sql, $bind, $query);
             }
 
-            throw new PDOException($e, $this->config, $this->getLastsql());
+            $errorLog=$this->error();
+            throw new PDOException($e, $this->config, $this->getLastsql().$errorLog);
         } catch (\Throwable $e) {
             if ($this->isBreak($e)) {
                 return $this->close()->execute($sql, $bind, $query);
             }
-
-            throw $e;
-        } catch (\Exception $e) {
-            if ($this->isBreak($e)) {
-                return $this->close()->execute($sql, $bind, $query);
-            }
-
-            throw $e;
+            $errorLog=$this->error();
+            throw new DbException($e->getMessage().$errorLog, $this->config, $this->getLastsql());
         }
     }
 
@@ -999,11 +993,12 @@ abstract class Connection
      * @throws \Exception
      * @throws \Throwable
      */
-    public function insertAll(Query $query, $dataSet = [], $replace = false, $limit = null)
+    public function insertAll(Query $query, array $dataSet = [], $replace = false, $limit = null)
     {
-        if (!is_array(reset($dataSet))) {
-            return false;
-        }
+        reset($dataSet);
+//        if (!is_array(reset($dataSet))) {
+//            return false;
+//        }
 
         $options = $query->getOptions();
 
@@ -1677,7 +1672,8 @@ abstract class Connection
     {
         $this->initConnect(true);
         if (!$this->linkID) {
-            return false;
+            $errorLog=$this->error();
+            throw new DbException('connection link not losed '.$errorLog);
         }
 
         ++$this->transTimes;
@@ -1710,7 +1706,11 @@ abstract class Connection
         $this->initConnect(true);
 
         if (1 == $this->transTimes) {
-            $this->linkID->commit();
+            $result=$this->linkID->commit();
+            if(!$result){
+                $errorLog=$this->error();
+                throw new DbException('事务提交失败:'.$errorLog);
+            }
         }
 
         --$this->transTimes;
@@ -1726,15 +1726,44 @@ abstract class Connection
     {
         $this->initConnect(true);
 
+        $result=true;
         if (1 == $this->transTimes) {
-            $this->linkID->rollBack();
+            $result=$this->linkID->rollBack();
         } elseif ($this->transTimes > 1 && $this->supportSavepoint()) {
-            $this->linkID->exec(
+            $result=$this->linkID->exec(
                 $this->parseSavepointRollBack('trans' . $this->transTimes)
             );
         }
+        if(!$result){
+            $errorLog=$this->error();
+            throw new DbException('事务回滚失败:'.$errorLog);
+        }
 
         $this->transTimes = max(0, $this->transTimes - 1);
+    }
+    /**
+     * 数据库错误信息
+     * 并显示当前的SQL语句
+     * @static
+     * @access public
+     * @return string
+     */
+    private function error() {
+        $dt = debug_backtrace();
+        $log = $error = "\n来源方法:\t";
+        if ($dt[4]) {
+            $log .= $dt[4]['class'] . "->" . $dt[4]['function'] . "\t";
+        }
+        if ($dt[5]) {
+            $log .= "\t" . $dt[5]['class'] . "->" . $dt[5]['function'] . "\t";
+        }
+        if ($dt[6]) {
+            $log .= "\t" . $dt[6]['class'] . "->" . $dt[6]['function'] . "\t";
+        }
+        if ($dt[7]) {
+            $log .= "\t" . $dt[7]['class'] . "->" . $dt[7]['function'] . "\t";
+        }
+        return $log;
     }
 
     /**
@@ -1776,11 +1805,11 @@ abstract class Connection
      * @param  array $bind       参数绑定
      * @return boolean
      */
-    public function batchQuery($sqlArray = [], $bind = [])
+    public function batchQuery(array $sqlArray = [], $bind = [])
     {
-        if (!is_array($sqlArray)) {
-            return false;
-        }
+//        if (!is_array($sqlArray)) {
+//            return false;
+//        }
 
         // 自动启动事务支持
         $this->startTrans();

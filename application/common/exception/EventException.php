@@ -2,12 +2,13 @@
 /**
  * Created by PhpStorm.
  * User: zh
- * Date: 2019/10/21
+ * Date: 2019/12/08
  * Time: 18:17
  */
 namespace app\common\exception;
 
-class GrpcException extends ApplicationException {
-    public $needCallManager=true;
+use think\Exception;
+
+class EventException extends Exception {
 
 }

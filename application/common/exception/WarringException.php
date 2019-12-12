@@ -9,7 +9,6 @@
 namespace app\common\exception;
 
 
-
 class WarringException extends \Exception {
 
 }
