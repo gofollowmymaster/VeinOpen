@@ -1,20 +1,7 @@
 <?php
 
-// +----------------------------------------------------------------------
-// | ThinkAdmin
-// +----------------------------------------------------------------------
-// | 版权所有 2014~2017 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
-// +----------------------------------------------------------------------
-// | 官方网站: http://think.ctolog.com
-// +----------------------------------------------------------------------
-// | 开源协议 ( https://mit-license.org )
-// +----------------------------------------------------------------------
-// | github开源项目：https://github.com/zoujingli/ThinkAdmin
-// +----------------------------------------------------------------------
+namespace app\firm\middleware;
 
-namespace app\admin\middleware;
-
-use app\common\exception\AuthException;
 use service\NodeService;
 use think\Db;
 use think\Request;
@@ -40,11 +27,12 @@ class Auth
         $access = $this->buildAuth($node = NodeService::parseNodeStr("{$module}/{$controller}/{$action}"));
         // 登录状态检查
         if (!empty($access['is_login']) && !session('user')) {
-            throw new AuthException('抱歉，您还没有登录获取访问权限！');
+            $msg = ['code' => 0, 'msg' => '抱歉，您还没有登录获取访问权限！', 'url' => url('@admin/login')];
+            return $request->isAjax() ? json($msg) : redirect($msg['url']);
         }
         // 访问权限检查
         if (!empty($access['is_auth']) && !auth($node)) {
-            throw new AuthException('抱歉，您没有访问该模块的权限！');
+            return json(['code' => 0, 'msg' => '抱歉，您没有访问该模块的权限！']);
         }
         // 模板常量声明
         app('view')->init(config('template.'))->assign(['classuri' => NodeService::parseNodeStr("{$module}/{$controller}")]);
