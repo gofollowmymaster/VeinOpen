@@ -59,7 +59,7 @@ class Index extends Controller {
      */
     public function info(UserServer $userServer) {
         $userId = session('user.id');
-        $param = $this->request->post();
+        $param = $this->request->only(['username' ,'desc', 'phone', 'mail'],'post');
         $this->validate($param, 'app\manager\validate\UserValidate');
         $userServer->updateUserById($userId,$param);
         return $this->jsonReturn();

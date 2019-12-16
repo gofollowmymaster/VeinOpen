@@ -13,14 +13,15 @@ use think\Validate;
 
 class LoginValidate extends Validate {
     protected $rule =   [
-        'username' => 'require|min:4',
-        'password' => 'require|min:4',
+        'username' => 'require|chsDash',
+        'password' => 'require|alphaDash|min:6',
     ];
 
     protected $message  =   [
         'username.require' => '登录账号不能为空！',
-        'username.min'     => '登录账号长度不能少于4位有效字符！',
+        'username.chsDash'     => '登录账号有非法字符！',
         'password.require' => '登录密码不能为空！',
-        'password.min'     => '登录密码长度不能少于4位有效字符！',
+        'password.min'     => '登录密码长度不能少于6位有效字符！',
+        'password.alphaDash'     => '登录密码有非法字符！',
     ];
 }

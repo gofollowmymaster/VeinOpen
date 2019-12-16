@@ -41,7 +41,7 @@ class Menu {
     public function getUserMenuTree( bool $isLogin) {
         $nodes=NodeModel::where('status',1)->select()->toArray();
         $list = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title,node,url')
-                            ->selectOrFail()->toArray();
+                            ->select()->toArray();
         $result = $this->buildMenuData(arr2tree($list), $nodes, $isLogin);
 
         return $result;

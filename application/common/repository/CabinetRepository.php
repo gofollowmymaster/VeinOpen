@@ -2,14 +2,13 @@
 /**
  * Created by PhpStorm.
  * User: zh
- * Date: 2019/11/7
+ * Date: 2019/12/7
  * Time: 15:47
  */
 
-namespace Common\Repository;
+namespace app\common\repository;
 
-use Common\Exception\DbException;
-use Common\Exception\WarringException;
+use app\common\exception\WarringException;
 
 class CabinetRepository extends RedisDriver {
 

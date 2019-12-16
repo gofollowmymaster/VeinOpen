@@ -36,7 +36,7 @@ class Role extends Controller {
      * @return \think\response\Json
      */
     public function save() {
-        $param = $this->request->param();
+        $param = $this->request->only(['title','desc','status','sort'],'post');
         $this->validate($param, 'app\manager\validate\RoleValidate');
 
         //执行保存
@@ -61,9 +61,9 @@ class Role extends Controller {
      */
     public function update($id) {
         //验证数据
-        $param = $this->request->param();
+        $param = $this->request->only(['id','title','desc','status','sort'],'param');
         $this->validate($param, 'app\manager\validate\RoleValidate');
-
+        unset($param['id']);
         //执行更新
         $this->service->updateRoleById($id, $param);
         //返回数据
@@ -97,10 +97,9 @@ class Role extends Controller {
      * 读取授权节点
      * @param string $auth
      */
-    public function getAuthNode()
+    public function getAuthNode($id)
     {
-        $auth=$this->request->get('id');
-        $result = $this->service->getAuthNode($auth);
+        $result = $this->service->getAuthNode($id);
         return $this->jsonReturn(0, '操作成功', $result);
     }
 
@@ -108,10 +107,10 @@ class Role extends Controller {
      * 保存授权节点
      * @return \think\response\Json
      */
-    public function saveAuthNode(){
-        $auth=$this->request->param('id');
-        $nodes=$this->request->post('nodes')?:[];
-        $this->service->saveAuthNode($auth,$nodes);
+    public function saveAuthNode($id){
+
+        $nodes=$this->request->post('nodes',[]);
+        $this->service->saveAuthNode($id,$nodes);
 
         return $this->jsonReturn(0,'节点授权更新成功！');
     }

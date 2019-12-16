@@ -16,15 +16,16 @@ use think\db\Query;
 class Node {
 
     private $model;
-    private $ignore = ['index', 'wechat/review', 'admin/plugs', 'admin/login', 'admin/index'];
+    private $ignore = [ 'manager/login'];
 
     public function __construct(NodeModel $model) {
         $this->model = $model;
     }
 
-    public function searchNodes($group = '') {
+    public function searchNodes($module = '') {
 
-        $nodes = $this->getNodesAllInDb($group);
+        $nodes = $this->getNodesInDb(['module'=>$module]);
+        $nodes=$this->addPnodeToNodes($nodes);
         $nodes = arr2table($nodes, 'node', 'pnode');
         $groups = [];
         foreach ($nodes as $node) {
@@ -72,7 +73,7 @@ class Node {
      * @param array $nodes
      * @return array
      */
-    public function getNodesAllDetail(string $module,$nodes = []) {
+    private function getNodesAllDetail(string $module,$nodes = []) {
         $alias = $this->model->whereLike('node',"{$module}/%")->column('node,is_menu,is_auth,is_login,title');
 
         foreach ($this->getNodeInFile(env('app_path')."/{$module}") as $thr) {
@@ -97,7 +98,7 @@ class Node {
      * @param array $nodes
      * @return array
      */
-    public function getNodesAllInFile(string $module) {
+    private function getNodesAllInFile(string $module) {
 
         $nodes=[];
         foreach ($this->getNodeInFile(env('app_path')."{$module}") as $thr) {
@@ -116,11 +117,20 @@ class Node {
         return $nodes;
     }
 
-    public function getNodesAllInDb(string $module='') {
+    public function getNodesInDb(array $search=[]) {
 
         $query=new Query();
-        $query->whereLike('node',"{$module}%")->where('status',1);
+        foreach (['status','is_menu','is_auth','is_login'] as $key){
+            if ((isset($search[$key]) && $search[$key] !== '')) {
+                $query->where($key, "$search[$key]");
+            }
+        }
+        $module=$search['module']??'';
+        $query->whereLike('node',"{$module}%");
         $nodesInDb=$this->model->where($query)->column('node,is_menu,is_auth,is_login,title');
+        return $nodesInDb;
+    }
+    protected function addPnodeToNodes($nodesInDb){
         $nodes=[];
         foreach ($nodesInDb as $node) {
             $thr=$node['node'];
@@ -132,16 +142,15 @@ class Node {
             $tmp = explode('/', $thr);
             if(count($tmp)>1){
                 list($one, $two) = ["{$tmp[0]}", "{$tmp[0]}/{$tmp[1]}"];
-                $nodes[$two] = array_merge($nodesInDb[$two], ['pnode' => $one]);
-                $nodes[$thr] = array_merge($nodesInDb[$thr], ['pnode' => $two]);
+                $nodes[$two] = array_merge($nodesInDb[$two]??[], ['pnode' => $one]);
+                $nodes[$thr] = array_merge($nodesInDb[$thr]??[], ['pnode' => $two]);
             }else{
                 $one=$tmp[0];
-                $nodes[$one] = array_merge($nodesInDb[$one], ['pnode' => '']);
+                $nodes[$one] = array_merge($nodesInDb[$one]??[] , ['pnode' => '']);
             }
         }
         return $nodes;
     }
-
 
     /**
      * 获取节点列表
@@ -149,7 +158,7 @@ class Node {
      * @param array  $nodes 额外数据
      * @return array
      */
-    public  function getNodeInFile($dirPath, $nodes = []) {
+    private  function getNodeInFile($dirPath, $nodes = []) {
         foreach ($this->scanDirFile($dirPath) as $filename) {
             $matches = [];
             if (!preg_match('|/(\w+)/controller/(\w+)|', str_replace(DIRECTORY_SEPARATOR, '/', $filename), $matches) || count($matches) !== 3) {
@@ -172,7 +181,7 @@ class Node {
      * @param string $node
      * @return string
      */
-    public  function parseNodeStr($node) {
+    private  function parseNodeStr($node) {
         $tmp = [];
         foreach (explode('/', $node) as $name) {
             $tmp[] = strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
@@ -202,30 +211,17 @@ class Node {
         return $data;
     }
 
-    public function updateMenuById(int $id, array $data) {
+    public function updateNodeById(int $id, array $data) {
         $result = $this->model->save($data, ['id' => $id]);
-        isModelFailed($result, '修改菜单失败');
+        isModelFailed($result, '修改节点失败');
         return $this->model;
     }
 
-    public function addMenu(array $data) {
-        $result = $this->model->save($data);
-        isModelFailed($result, '添加菜单失败');
-        return $this->model;
-    }
-
-    public function delMenuById(int $id) {
+    public function delNodeById(int $id) {
         $result = $this->model->destroy($id);
-        isModelFailed($result, '删除菜单失败');
+        isModelFailed($result, '删除节点失败');
         return $result;
     }
 
-    public function getUserMenuTree(array $nodes, bool $isLogin) {
-        $list = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title,node,url')
-                            ->select()->toArray();
-        $result = $this->buildMenuData(arr2tree($list), $nodes, $isLogin);
-
-        return $result;
-    }
 
 }

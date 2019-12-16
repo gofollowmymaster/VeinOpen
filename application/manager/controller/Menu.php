@@ -46,10 +46,9 @@ class Menu extends Controller {
      * @return \think\response\Json
      */
     public function save() {
-        $param = $this->request->param();
+        $param = $this->request->only(['pid' ,'title','url'],'post');
         $this->validate($param, 'app\manager\validate\MenuValidate');
-        //todo 检查是否有操作父菜单权限
-
+        //todo 检查是否有操作父菜单权限?
         //执行保存
         $this->service->addMenu($param);
         return $this->jsonReturn();
@@ -70,16 +69,9 @@ class Menu extends Controller {
 
     public function update($id) {
         //验证数据
-        $param = $this->request->param();
-
+        $param = $this->request->only(['id','pid' ,'title','url'],'post');
         $this->validate($param, 'app\manager\validate\MenuValidate');
-
-        //验证权限
-        //        $node=strtolower($request->module().'/'.$request->controller().'/'.$request->action());
-        //验证管理员是否有权管理该菜单
-        //        if($nodes=NodeService::getAuthNode()){
-        //            throw new AuthException('没有修改该菜单权限');
-        //        }
+        unset($param['id']);
         //执行更新
         $this->service->updateMenuById($id, $param);
         //返回数据
@@ -109,16 +101,6 @@ class Menu extends Controller {
         return $this->jsonReturn();
     }
 
-    /**
-     * 菜单禁用
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    protected function resume() {
-        if (DataService::update($this->table)) {
-            $this->success("菜单启用成功!", '');
-        }
-        $this->error("菜单启用失败, 请稍候再试!");
-    }
+
 
 }

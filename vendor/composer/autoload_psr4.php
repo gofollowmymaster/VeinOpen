@@ -6,14 +6,21 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'think\\swoole\\' => array($vendorDir . '/topthink/think-swoole/src'),
     'think\\composer\\' => array($vendorDir . '/topthink/think-installer/src'),
     'think\\captcha\\' => array($vendorDir . '/topthink/think-captcha/src'),
+    'think\\' => array($vendorDir . '/topthink/think-helper/src', $vendorDir . '/topthink/think-queue/src'),
+    'XCron\\' => array($vendorDir . '/xavier/xcron-expression/src/Cron'),
     'WePay\\' => array($vendorDir . '/zoujingli/wechat-developer/WePay'),
     'WeOpen\\' => array($vendorDir . '/zoujingli/weopen-developer/WeOpen'),
     'WeMini\\' => array($vendorDir . '/zoujingli/wechat-developer/WeMini', $vendorDir . '/zoujingli/weopen-developer/WeMini'),
     'WeChat\\' => array($vendorDir . '/zoujingli/wechat-developer/WeChat', $vendorDir . '/zoujingli/weopen-developer/WeChat'),
+    'Symfony\\Polyfill\\Util\\' => array($vendorDir . '/symfony/polyfill-util'),
+    'Symfony\\Polyfill\\Php56\\' => array($vendorDir . '/symfony/polyfill-php56'),
     'Symfony\\Component\\OptionsResolver\\' => array($vendorDir . '/symfony/options-resolver'),
+    'SuperClosure\\' => array($vendorDir . '/jeremeamia/superclosure/src'),
     'Qiniu\\' => array($vendorDir . '/qiniu/php-sdk/src/Qiniu'),
+    'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),
     'OSS\\' => array($vendorDir . '/aliyuncs/oss-sdk-php/src/OSS'),
     'Endroid\\QrCode\\' => array($vendorDir . '/endroid/qr-code/src'),
     'AliPay\\' => array($vendorDir . '/zoujingli/wechat-developer/AliPay'),

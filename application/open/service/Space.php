@@ -7,10 +7,9 @@
  * description:描述
  */
 
-namespace app\manager\service;
+namespace app\open\service;
 
-use \app\manager\model\Space as SpaceModel;
-use think\db\exception\DataNotFoundException;
+use \app\open\model\Space as SpaceModel;
 use think\db\Query;
 
 class Space {

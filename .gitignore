@@ -11,3 +11,4 @@
 /static/upload
 /public/upload
 /safefile
+/.env

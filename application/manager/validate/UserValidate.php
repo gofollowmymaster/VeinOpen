@@ -9,24 +9,26 @@
 
 namespace app\manager\validate;
 
+use app\common\traits\ValidateTrait;
 use think\Db;
 use think\exception\ValidateException;
 use think\Validate;
 
 class UserValidate extends Validate {
-    protected $rule = ['username' => 'require|chsDash|unique:system_user',
+    use ValidateTrait;
+    protected $rule = ['username' => 'requireCallback:requireWhenCreate|chsDash|unique:system_user',
                        'desc' => 'chsDash',
-                       'phone' => 'number',
+                       'phone' => 'mobile',
                        'mail' => 'email',
-                       'firm_id'   => 'requireCallback:checkRequire|number|checkFirm:thinkphp',
+                       'firm_id'   => 'requireCallback:requireWhenCreate|number|checkFirm:thinkphp',
                        'authorize' => 'checkAuthorize:thinkphp',];
 
     protected $message = [
-                          'username.require' => '管理员名不能为空',
+                          'username.requireCallback' => '管理员名不能为空',
                           'username.chsDash' => '管理员名格式错误',
                           'username.unique' => '管理员名已存在',
                           'desc.chsDash' => '描述信息有非法字符!',
-                          'phone.number'     => '手机号格式错误！',
+                          'phone.mobile'     => '手机号格式错误！',
                           'mail.email' => '邮箱格式错误！',
                           'firm_id.requireCallback'=>'请选择商家',
                           'firm_id.number'=>'商家信息错误',
@@ -64,7 +66,7 @@ class UserValidate extends Validate {
         }
         //非商家账号为0
         if($firmId){
-            $result = Db::name('open_firm')->where('id', $firmId)->findOrEmpty();
+            $result = Db::name('system_firm')->where('id', $firmId)->findOrEmpty();
             if (!$result) {
                 $message='错误的商家ID';
             }
@@ -72,11 +74,4 @@ class UserValidate extends Validate {
         return $message ?: true;
     }
 
-    protected function checkRequire($firmId, $rule, $data = []) {
-        $result=false;
-        if (!isset($rule['id'])&&(!isset($firmId)||$firmId=='')) {
-            $result=true;
-        }
-        return $result;
-    }
 }

@@ -34,25 +34,21 @@ class Login extends Controller
     public function index( )
     {
         // 输入数据效验
-        $data = [
-            'username' => $this->request->post('username', ''),
-            'password' => $this->request->post('password', ''),
-        ];
-        $this->validate($data, 'app\manager\validate\LoginValidate');
+        $param = $this->request->only(['username' ,'password',],'post');
+        $this->validate($param, 'app\manager\validate\LoginValidate');
 
         // 用户信息验证
-
-        $user = Db::name('SystemUser')->where(['username' => $data['username'], 'is_deleted' => '0',])->find();
+        $user = Db::name('SystemUser')->where(['username' => $param['username']])->find();
         if(empty($user)){
             throw new AuthException('登录账号不存在，请重新输入!');
         }
         if(empty($user['status'])){
             throw new AuthException('账号已经被禁用，请联系管理员!');
         }
-        if($user['password'] !== md5($data['password'])){
+        if($user['password'] !== md5($param['password'])){
             throw new AuthException('登录密码错误，请重新输入!');
         }
-        //todo 商家状态 需要验证
+        //todo 商家状态 需要验证?
 
         session('user', $user);
         //触发登陆成功事件

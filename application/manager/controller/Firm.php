@@ -1,11 +1,10 @@
 <?php
 
-namespace app\open\controller;
+namespace app\manager\controller;
 
-use app\open\service\Firm as FirmServer;
+use app\manager\service\Firm as FirmServer;
 use think\App;
 use think\Controller;
-use think\exception\ValidateException;
 
 /**
  * 管理员控制器
@@ -26,7 +25,7 @@ class Firm extends Controller {
      * @return \think\response\Json
      */
     public function index() {
-        $search = $this->request->get();
+        $search = $this->request->only(['firm_name','mail','phone','status'],'get');
         $result = $this->service->searchFirms($search);
         return $this->jsonReturn(0, '操作成功', $result);
     }
@@ -50,9 +49,9 @@ class Firm extends Controller {
      */
     public function update($id) {
         //验证数据
-        $param = $this->request->param();
+        $param = $this->request->only(['id','firm_name' ,'desc', 'phone', 'mail', 'status'],'param');
         $this->validate($param, 'app\manager\validate\FirmValidate');
-
+        unset($param['id']);
         //执行更新
         $this->service->updateFirmById($id, $param);
         //返回数据
@@ -64,7 +63,7 @@ class Firm extends Controller {
      * @return \think\response\Json
      */
     public function save() {
-        $param=$this->request->post();
+        $param = $this->request->only(['firm_name' ,'desc', 'phone', 'mail', 'status'],'post');
         $this->validate($param, 'app\manager\validate\FirmValidate');
 
         $param['create_by']=session('user.id');
@@ -73,21 +72,13 @@ class Firm extends Controller {
     }
 
     /**
-     * 用户密码修改
+     * 商家appid修改
      * @param $id
      * @return \think\response\Json
      */
-    public function pass($id) {
+    protected function modifyAppid($id) {
 
-        $post = $this->request->post();
-        if ($post['password'] !== $post['repassword']) {
-            throw new ValidateException('两次输入的密码不一致！');
-        }
-        if (strlen($post['password'])<6) {
-            throw new ValidateException('密码长度不能小于6位');
-        }
-        $data = ['password' => md5($post['password'])];
-        $this->service->updateFirmById($id, $data);
+//        $this->service->updateFirmById($id, $data);
         return $this->jsonReturn(0,'密码修改成功');
     }
 

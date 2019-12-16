@@ -7,7 +7,7 @@
  * description:描述
  */
 
-namespace app\manager\model;
+namespace app\open\model;
 
 use think\Model;
 use think\model\concern\SoftDelete;

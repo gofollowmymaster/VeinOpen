@@ -33,17 +33,18 @@ class User {
         }
         $result=$this->model->where($query)
                             ->field('id,firm_id,username,password,mail,phone,desc,status')
-                            ->select()->toArray();
+                            ->paginate(10);
         return $result;
     }
     public function getUserById($id){
-        $result = $this->model->where(['id' => $id])->field('id,username,qq,mail,phone,firm_id,desc,authorize')->findOrFail()->toArray();
+        $result = $this->model->where(['id' => $id])->field('id,username,qq,mail,phone,firm_id,desc,authorize')->findOrEmpty()->toArray();
         isEmptyInDb($result, '不存在的用户');
         return $result;
     }
 
     public function updateUserById(int $id, array $data) {
         $result = $this->model->save($data, ['id' => $id]);
+
         isModelFailed($result, '修改管理员信息失败!');
         return $this->model;
     }

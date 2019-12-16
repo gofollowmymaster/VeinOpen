@@ -2,19 +2,19 @@
 /**
  * Created by PhpStorm.
  * User: zh
- * Date: 2019/11/7
+ * Date: 2019/12/7
  * Time: 15:38
  */
-namespace Common\Repository;
+namespace app\common\repository;
 
- use Common\Exception\DbException;
- use Common\Exception\WarringException;
- use Common\Tools\RedisClient;
+ use app\common\exception\WarringException;
+ use app\common\tool\RedisClient;
+ use think\exception\DbException;
 
  class RedisDriver {
     protected $redis;
     public function __construct($config=null) {
-        $redis=New RedisClient($config);
+        $redis= RedisClient::getInstance($config);
         $this->redis=$redis->getRedis();
     }
 

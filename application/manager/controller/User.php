@@ -26,7 +26,7 @@ class User extends Controller {
      * @return \think\response\Json
      */
     public function index() {
-        $search = $this->request->get();
+        $search = $this->request->only(['firm_id','username','phone','status'],'get');
         $result = $this->service->searchUsers($search);
         return $this->jsonReturn(0, '操作成功', $result);
     }
@@ -50,10 +50,10 @@ class User extends Controller {
      */
     public function update($id) {
         //验证数据
-        $param = $this->request->param();
+        $param = $this->request->only(['id','username' ,'desc', 'phone', 'mail','authorize'],'param');
         $this->validate($param, 'app\manager\validate\UserValidate');
-
         //执行更新
+        unset($param['id']);
         $this->service->updateUserById($id, $param);
         //返回数据
         return $this->jsonReturn();
@@ -64,7 +64,7 @@ class User extends Controller {
      * @return \think\response\Json
      */
     public function save() {
-        $param=$this->request->post();
+        $param = $this->request->only(['username' ,'desc', 'phone', 'mail','firm_id','authorize'],'post');
         $this->validate($param, 'app\manager\validate\UserValidate');
 
         $param['create_by']=session('user.id');

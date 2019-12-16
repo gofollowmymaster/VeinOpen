@@ -12,7 +12,7 @@
 // | github开源项目：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace app\admin\middleware;
+namespace app\manager\middleware;
 
 use app\common\exception\AuthException;
 use service\NodeService;

@@ -52,15 +52,50 @@ class Node extends Controller
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    public function clear($group)
+    public function clear($group='')
     {
         $this->service->clearNodes($group);
         return $this->jsonReturn();
     }
 
-    public function  autoAdd($group){
+    public function  autoAdd($group=''){
         $this->service->autoAdd($group);
         return $this->jsonReturn();
     }
+
+    public function update($id){
+        $param = $this->request->only(['title','is_menu','is_login','is_auth','status','action'],'post');
+        $this->validate($param, 'app\manager\validate\NodeValidate');
+        unset($param['action']);
+        unset($param['id']);
+        $this->service->updateNodeById($id,$param);
+        return $this->jsonReturn();
+    }
+
+    public function delete($id){
+        $this->service->delNodeById($id);
+        return $this->jsonReturn();
+    }
+
+    public function menuNodes(){
+        $result=$this->service->getNodesInDb(['is_menu'=>1,'status'=>1]);
+        $result=array_column($result,'title','node');
+        $result=array_merge($result,['#'=>'上级菜单']);
+        //返回数据
+        return $this->jsonReturn(0,'操作成功',$result);
+    }
+
+    /**
+     * 节点禁用
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    protected function forbid($id) {
+        $this->service->updateNodeById($id, ['status'=>0]);
+        //返回数据
+        return $this->jsonReturn();
+    }
+
+
 
 }

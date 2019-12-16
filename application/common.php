@@ -322,14 +322,14 @@ function exceptionToArray(\Exception $exception) {
 function isEmptyInDb(array $data, string $message) {
     if (empty($data)) {
         $sql = Db::getLastSql();
-        throw new \think\exception\DbException($message . ':' . $sql);
+        throw new \think\db\exception\DataNotFoundException($message . ":\nSQL:" . $sql);
     }
 }
 
 function isModelFailed($res, string $message) {
     if ($res === false) {
         $sql = Db::getLastSql();
-        throw new \think\exception\DbException($message . ':' . $sql);
+        throw new \think\exception\DbException($message . ":\nSQL:" . $sql);
     }
 }
 

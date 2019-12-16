@@ -7,7 +7,7 @@
  * description:描述
  */
 
-namespace app\open\model;
+namespace app\manager\model;
 
 use think\Model;
 use think\model\concern\SoftDelete;
@@ -17,7 +17,7 @@ class Firm extends Model {
     protected $deleteTime = 'delete_at';
     protected $defaultSoftDelete = '0';
 
-    protected $table = 'open_firm';
+    protected $table = 'system_firm';
     protected $pk    = 'id';
 
 

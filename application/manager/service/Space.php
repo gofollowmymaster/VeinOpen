@@ -9,62 +9,68 @@
 
 namespace app\manager\service;
 
-use \app\manager\model\Firm as FirmModel;
+use \app\manager\model\Space as SpaceModel;
+use think\db\exception\DataNotFoundException;
 use think\db\Query;
 
-class Firm {
+class Space {
 
     private $model;
 
-    public function __construct(FirmModel $model) {
+    public function __construct(SpaceModel $model) {
         $this->model = $model;
     }
 
-    public function searchFirms(array $search) {
+    public function searchSpaces(array $search) {
         $query = new Query();
 
-        foreach (['mail', 'phone','status'] as $key) {
+        foreach (['firm_id', 'phone','status'] as $key) {
             if ((isset($search[$key]) && $search[$key] !== '')) {
                 $query->where($key, "$search[$key]");
             }
         }
-        if (isset($search['firm_name']) && $search['firm_name'] !== '') {
-            $query->whereLike('firm_name', "{$search['firm_name']}%");
+        if (isset($search['space_name']) && $search['space_name'] !== '') {
+            $query->whereLike('space_name', "{$search['space_name']}%");
         }
-        $result = $this->model->where($query)->field('id,firm_name,mail,phone,desc,status')->select()
-                              ->toArray();
+        $result = $this->model->where($query)->field('id,firm_id,space_name,phone,desc,status')->paginate(10);
         return $result;
     }
 
-    public function getFirmById($id) {
-        $result = $this->model->where(['id' => $id])->field('id,firm_name,mail,phone,desc,status')
-                              ->findOrFail()->toArray();
-        isEmptyInDb($result, '不存在的商家');
+    public function getSpaceById(int $id, $firmId) {
+        $result = $this->model->where(['id' => $id,'firm_id'=>$firmId])->field('id,firm_id,space_name,phone,desc,status')
+                              ->findOrEmpty()->toArray();
+        isEmptyInDb($result, '商户没有该场馆');
         return $result;
     }
 
-    public function updateFirmById(int $id, array $data) {
+    public function updateSpaceById(int $id, $firmId, array $data) {
+        $space=$this->model->where('id',$id)->where('firm_id',$firmId)->findOrEmpty()->toArray();
+        isEmptyInDb($space, '商户没有指定场馆!');
+
         $result = $this->model->save($data, ['id' => $id]);
-        isModelFailed($result, '修改商家信息失败!');
+        isModelFailed($result, '修改场馆信息失败!');
         return $this->model;
     }
 
-    public function addFirm(array $data) {
-        $data['appid']=$this->generateAppid();
+    public function addSpace(array $data) {
+        $data['space_appid']=$this->generateAppid();
         $result = $this->model->save($data);
-        isModelFailed($result, '添加商家失败');
+        isModelFailed($result, '添加场馆失败');
         return $this->model;
     }
 
-    public function delFirmById(int $id) {
+    public function delSpaceById(int $id, $firmId) {
+        $space=$this->model->where('id',$id)->where('firm_id',$firmId)->findOrEmpty()->toArray();
+        isEmptyInDb($space, '商户没有指定场馆!');
+
         $result = $this->model->destroy($id);
-        isModelFailed($result, '删除商家失败');
+        isModelFailed($result, '删除场馆失败');
         return $result;
     }
 
     private function generateAppid() {
         $appid = md5(uniqid());
-        while ($this->model->where('appid', $appid)->value('appid')) {
+        while ($this->model->where('space_appid', $appid)->value('space_appid')) {
             $appid = md5(uniqid());
         }
         return $appid;

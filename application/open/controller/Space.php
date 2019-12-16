@@ -1,8 +1,8 @@
 <?php
 
-namespace app\manager\controller;
+namespace app\open\controller;
 
-use app\manager\service\Space as SpaceServer;
+use app\open\service\Space as SpaceServer;
 use think\App;
 use think\Controller;
 
@@ -50,7 +50,7 @@ class Space extends Controller {
      */
     public function update($id) {
         //验证数据
-        $param = $this->request->only(['id','space_name','desc','status'],'param');
+        $param = $this->request->only(['id','space_name','phone','desc','status'],'param');
         $this->validate($param, 'app\manager\validate\SpaceValidate');
         //执行更新
         $firmId=session('user.firm_id')?:null;

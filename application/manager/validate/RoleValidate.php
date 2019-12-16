@@ -9,18 +9,23 @@
 
 namespace app\manager\validate;
 
+use app\common\traits\ValidateTrait;
 use think\Validate;
 
 class RoleValidate extends Validate {
+    use ValidateTrait;
     protected $rule =   [
-        'title' => 'chsDash',
+        'title' => 'requireCallback:requireWhenCreate|chsDash',
         'desc' => 'chsDash',
         'sort' => 'number',
+        'status'=>'in:0,1',
     ];
 
     protected $message  =   [
-        'title.chsDash' => '角色名格式错误',
+        'title.requireCallback' => '角色名不能为空!',
+        'title.chsDash' => '角色名格式错误!',
         'desc.chsDash'     => '描述信息有非法字符!',
         'sort.number' => '排序不能为空！',
+        'status.in' => '错误的状态！',
     ];
 }

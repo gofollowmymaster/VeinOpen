@@ -9,20 +9,26 @@
 
 namespace app\manager\validate;
 
+use app\common\traits\ValidateTrait;
 use think\Validate;
 
-class MenuValidate extends Validate {
+class NodeValidate extends Validate {
+
     protected $rule =   [
-        'pid' => 'number',
         'title' => 'chsDash',
-        'url' => 'require',
-//        'id' => 'number',
+        'is_menu' => 'in:0,1',
+        'is_auth' => 'in:0,1',
+        'is_login' => 'in:0,1',
+        'status' => 'in:0,1',
+        'action'=>'in:title,menu,auth,login,status',
     ];
 
     protected $message  =   [
-        'pid.number' => '父节点ID无效！',
         'title.chsDash'     => '节点名称无效!',
-        'url.require' => 'url不能为空！',
-//        'id.number'     => '节点ID无效！',
+        'is_menu.in' => '错误输入！',
+        'is_auth.in' => '错误输入！',
+        'is_login.in' => '错误输入！',
+        'status.in' => '错误输入！',
+        'action.in' => '无效操作！',
     ];
 }

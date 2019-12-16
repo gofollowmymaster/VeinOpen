@@ -12,7 +12,6 @@ namespace app\manager\service;
 use app\manager\model\Access;
 use app\manager\model\Role as RoleModel;
 use app\manager\service\Node as NodeServer;
-use think\Db;
 
 class Role {
 
@@ -56,10 +55,9 @@ class Role {
     public function getAuthNode($auth)
     {
         $node=new NodeServer(new \app\manager\model\Node());
-        $nodes = $node->getNodesAllInDb();
-
-
-        $checked = Db::name('SystemAuthNode')->where(['auth' => $auth])->column('node');
+        $nodes = $node->getNodesInDb();
+        $nodes=$this->addPnodeToNodes($nodes);
+        $checked =Access::where(['auth' => $auth])->column('node');
         foreach ($nodes as &$node) {
             $node['checked'] = in_array($node['node'], $checked);
         }

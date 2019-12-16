@@ -7,9 +7,9 @@
  * description:描述
  */
 
-namespace app\open\service;
+namespace app\manager\service;
 
-use \app\open\model\Firm as FirmModel;
+use \app\manager\model\Firm as FirmModel;
 use think\db\Query;
 
 class Firm {
@@ -23,44 +23,50 @@ class Firm {
     public function searchFirms(array $search) {
         $query = new Query();
 
-        foreach (['username', 'phone'] as $key) {
+        foreach (['mail', 'phone','status'] as $key) {
             if ((isset($search[$key]) && $search[$key] !== '')) {
-                $query->whereLike($key, "%{$search[$key]}%");
+                $query->where($key, "$search[$key]");
             }
         }
-        if (isset($search['firm_id'])&& $search['firm_id']!=='') {
-            $query->where('firm_id', $search['firm_id']);
+        if (isset($search['firm_name']) && $search['firm_name'] !== '') {
+            $query->whereLike('firm_name', "{$search['firm_name']}%");
         }
-        $result=$this->model->where($query)
-                            ->field('id,firm_id,username,password,mail,phone,desc,status')
-                            ->select()->toArray();
+        $result = $this->model->where($query)->field('id,firm_name,mail,phone,desc,status')->paginate(10);
         return $result;
     }
-    public function getFirmById($id){
-        $result = $this->model->where(['id' => $id])->field('id,username,qq,mail,phone,firm_id,desc,authorize')->findOrFail()->toArray();
-        isEmptyInDb($result, '不存在的用户');
+
+    public function getFirmById($id) {
+        $result = $this->model->where(['id' => $id])->field('id,firm_name,mail,phone,desc,status')
+                              ->findOrEmpty()->toArray();
+        isEmptyInDb($result, '不存在的商家');
         return $result;
     }
 
     public function updateFirmById(int $id, array $data) {
         $result = $this->model->save($data, ['id' => $id]);
-        isModelFailed($result, '修改管理员信息失败!');
+        isModelFailed($result, '修改商家信息失败!');
         return $this->model;
     }
 
     public function addFirm(array $data) {
+        $data['appid']=$this->generateAppid();
         $result = $this->model->save($data);
         isModelFailed($result, '添加商家失败');
         return $this->model;
     }
 
     public function delFirmById(int $id) {
-        if (FirmModel::SUPERVISOR== $id) {
-            throw new AuthException('非法操作！');
-        }
         $result = $this->model->destroy($id);
-        isModelFailed($result, '删除用户失败');
+        isModelFailed($result, '删除商家失败');
         return $result;
+    }
+
+    private function generateAppid() {
+        $appid = md5(uniqid());
+        while ($this->model->where('appid', $appid)->value('appid')) {
+            $appid = md5(uniqid());
+        }
+        return $appid;
     }
 
 

@@ -2,98 +2,98 @@
 
 namespace app\manager\controller;
 
-use app\manager\service\Firm as FirmServer;
+use app\manager\service\Space as SpaceServer;
 use think\App;
 use think\Controller;
-use think\exception\ValidateException;
 
 /**
  * 管理员控制器
- * Class Firm
+ * Class Space
  * @package app\manager\controller
  */
-class Firm extends Controller {
+class Space extends Controller {
 
     private $service;
 
-    public function __construct(App $app = null, FirmServer $service) {
+    public function __construct(App $app = null, SpaceServer $service) {
         parent::__construct($app);
         $this->service = $service;
     }
 
     /**
-     * 用户列表
+     * 场馆列表
      * @return \think\response\Json
      */
     public function index() {
-        $search = $this->request->get();
-        $result = $this->service->searchFirms($search);
+        $search = $this->request->only(['firm_id','space_name','mail','phone','status'],'get');
+        $search['firm_id']=session('user.firm_id')?:null;
+        $result = $this->service->searchSpaces($search);
         return $this->jsonReturn(0, '操作成功', $result);
     }
 
 
     /**
-     * 用户编辑
+     * 场馆编辑
      * @param $id
      * @return \think\response\Json
      */
     public function edit($id) {
-
-        $user=$this->service->getFirmById($id);
+        $firmId=session('user.firm_id');
+        $user=$this->service->getSpaceById($id,$firmId);
         return $this->jsonReturn(0, '操作成功', $user);
     }
 
     /**
-     * 修改用户信息
+     * 修改场馆信息
      * @param $id
      * @return \think\response\Json
      */
     public function update($id) {
         //验证数据
-        $param = $this->request->param();
-        $this->validate($param, 'app\manager\validate\FirmValidate');
-
+        $param = $this->request->only(['id','space_name','desc','status'],'param');
+        $this->validate($param, 'app\manager\validate\SpaceValidate');
         //执行更新
-        $this->service->updateFirmById($id, $param);
+        $firmId=session('user.firm_id')?:null;
+        unset($param['id']);
+        $this->service->updateSpaceById($id,$firmId, $param);
         //返回数据
         return $this->jsonReturn();
     }
 
     /**
-     * 添加用户
+     * 添加场馆
      * @return \think\response\Json
      */
     public function save() {
-        $param=$this->request->post();
-        $this->validate($param, 'app\manager\validate\FirmValidate');
+        $param = $this->request->only(['space_name','desc'],'post');
+        $this->validate($param, 'app\manager\validate\SpaceValidate');
 
+        $param['firm_id']=session('user.firm_id');
+        $param['status']=0;
         $param['create_by']=session('user.id');
-        $user=$this->service->addFirm($param);
+        $user=$this->service->addSpace($param);
         return $this->jsonReturn(0, '操作成功', $user);
     }
 
     /**
-     * 用户密码修改
+     * 场馆密码修改
      * @param $id
      * @return \think\response\Json
      */
     protected function modifyAppid($id) {
 
-        $this->service->updateFirmById($id, $data);
+//        $this->service->updateSpaceById($id, $data);
         return $this->jsonReturn(0,'密码修改成功');
     }
 
-
-
     /**
-     * 删除用户
+     * 删除场馆
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
     public function delete($id) {
-
-        $this->service->delFirmById($id);
+        $firmId=session('user.firm_id');
+        $this->service->delSpaceById($id,$firmId);
         return $this->jsonReturn();
     }
-
 }

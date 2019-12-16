@@ -63,7 +63,7 @@ class ExceptionHandle extends Handle {
             unset($data['PDO Error Info']['SQLSTATE']);
             unset($data['PDO Error Info']['Driver Error Code']);
             unset($data['Database Status']['Error Code']);
-            $log=arrayToStr($data);
+            $log.=arrayToStr($data);
         }
 
         if (Container::get('app')->config('log.record_trace')) {

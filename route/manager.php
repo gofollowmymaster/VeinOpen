@@ -23,24 +23,29 @@ Route::group('manager', function () {
     Route::get('menu/forbid/:id', 'menu/forbid');
     //角色
     Route::resource('role','role')->except(['create']);
-    Route::get('role/forbid/:id', 'role/forbid');
+    Route::post('role/forbid/:id', 'role/forbid');
     Route::get('role/getAuthNode', 'role/getAuthNode');
-    Route::get('role/saveAuthNode', 'role/saveAuthNode');
+    Route::post('role/saveAuthNode/:id', 'role/saveAuthNode');
     //用户
     Route::resource('user','user');
-    Route::get('user/forbid/:id', 'user/forbid');
+    Route::post('user/forbid/:id', 'user/forbid');
     Route::post('user/pass/:id', 'user/pass');
     //节点
-    Route::get('node/clear', 'node/clear');
     Route::get('node$', 'node/index');
+    Route::put('node/:id', 'node/update');
+    Route::post('node/forbid/:id', 'node/forbid');
+    Route::delete('node/:id', 'node/delete');
     Route::get('node/autoAdd/[:group]', 'node/autoAdd');
     Route::get('node/clear/[:group]', 'node/clear');
-
-
+    Route::get('node/menunodes', 'node/menuNodes');
+    //商家
+    Route::resource('firm','firm');
+    Route::get('firm/fathermenus', 'firm/fatherMenus');
+    Route::get('firm/forbid/:id', 'firm/forbid');
 
     //miss
     Route::miss('index/miss');
-})->prefix("manager/")->pattern(['id' => '\d+']);
+})->prefix("manager/")->pattern(['id' => '\d+','group'=>'\w+']);
 
 
 
