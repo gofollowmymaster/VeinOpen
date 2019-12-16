@@ -7,17 +7,17 @@
  * description:描述
  */
 
-namespace app\firm\model;
+namespace app\manager\model;
 
 use think\Model;
 use think\model\concern\SoftDelete;
 
-class Firm extends Model {
+class Space extends Model {
     use SoftDelete;
     protected $deleteTime = 'delete_at';
     protected $defaultSoftDelete = '0';
 
-    protected $table = 'system_firm';
+    protected $table = 'system_space';
     protected $pk    = 'id';
 
 
