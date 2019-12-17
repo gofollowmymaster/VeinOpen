@@ -13,9 +13,9 @@ Route::group('open', function () {
 
     //场馆
     Route::resource('space','space')->except(['create']);
+    Route::miss('manager/index/miss');
 
 })->prefix("open/")->pattern(['id' => '\d+']);
 
 //miss
 
-Route::miss('manager/index/miss');
