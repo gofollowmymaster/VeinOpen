@@ -16,27 +16,27 @@ use think\exception\DbException;
 use think\exception\Handle;
 use think\exception\HttpException;
 use think\exception\ValidateException;
+use think\facade\Config;
 
 class ExceptionHandle extends Handle {
-    protected $ignoreReport = ['\\think\\exception\\ValidateException',
-                               '\\think\\exception\\RuntimeException',
+    protected $ignoreReport = ['\\think\\exception\\ValidateException', '\\think\\exception\\RuntimeException',
                                '\\app\\common\\exception\\IngoreReportException',];
 
     public function render(Exception $e) {
         if ($e instanceof ValidateException) {
-            return json(['message' => $e->getError(), 'status' => $e->getCode(),'data'=>[]], 200);
+            return json(['message' => $e->getError(), 'status' => $e->getCode(), 'data' => []], 200);
         }
-        $message=$this->cutHeaderMsg($e->getMessage());
+        $message = $this->cutHeaderMsg($e->getMessage());
         if ($e instanceof HttpException) {
             return response($message, $e->getStatusCode());
         }
-        return json(['message' =>$message, 'status' => $e->getCode(),'data'=>[]], 200);
+        return json(['message' => $message, 'status' => $e->getCode(), 'data' => []], 200);
     }
 
     public function report(Exception $exception) {
 
         if (!$this->isIgnoreReport($exception)) {
-            $log=$this->buildReportContent($exception);
+            $log = $this->buildReportContent($exception);
             $config = Container::get('app')->config('reporter.');
             Reporter::getInstance($config)->Report($log);
         }
@@ -58,12 +58,12 @@ class ExceptionHandle extends Handle {
             $log .= "[ {$data['code']}]{$data['message']}";
         }
 
-        if(($exception instanceof \think\Exception) && $data=$exception->getData()){
+        if (($exception instanceof \think\Exception) && $data = $exception->getData()) {
             unset($data['Database Config']);
             unset($data['PDO Error Info']['SQLSTATE']);
             unset($data['PDO Error Info']['Driver Error Code']);
             unset($data['Database Status']['Error Code']);
-            $log.=arrayToStr($data);
+            $log .= arrayToStr($data);
         }
 
         if (Container::get('app')->config('log.record_trace')) {
@@ -74,13 +74,15 @@ class ExceptionHandle extends Handle {
         return $log;
     }
 
-    private function cutHeaderMsg(string $message){
+    private function cutHeaderMsg(string $message) {
 
-        $msg=explode(':',$message)[0];
-        if($msg==$message&&mb_strlen($msg)>20){
-            $msg='处理异常';
-        }elseif (mb_strlen($msg)>20){
-            $msg=substr($msg,0,20);
+        $msg = explode(':', $message)[0];
+        if (Config::get('app_debug') == false) {
+            if ($msg == $message && mb_strlen($msg) > 20) {
+                $msg = '处理异常';
+            } elseif (mb_strlen($msg) > 20) {
+                $msg = substr($msg, 0, 20);
+            }
         }
         return $msg;
     }
