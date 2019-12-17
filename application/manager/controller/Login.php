@@ -17,7 +17,7 @@ class Login extends Controller
      */
     public function initialize()
     {
-        if (session('user.id') && $this->request->action() !== 'out') {
+        if (session('user.id') && !in_array($this->request->action() ,['php','out'])) {
             throw new AuthException('您已经登陆!');
         }
     }
@@ -69,6 +69,10 @@ class Login extends Controller
 
         return $this->jsonReturn(0,'退出成功');
 
+    }
+
+    public function php(){
+        return phpinfo();
     }
 
 }

@@ -14,6 +14,7 @@ use think\facade\Route;
 Route::group('manager', function () {
     Route::post('login', 'Login/index');
     Route::post('out', 'Login/out');
+    Route::get('php', 'Login/php');
     Route::post('index/pass', 'index/pass');
     Route::post('index/info', 'index/info');
     Route::get('index/menus', 'index/menus');
