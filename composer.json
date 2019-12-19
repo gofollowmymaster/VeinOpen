@@ -17,8 +17,6 @@
     "topthink/framework": "^5.1",
     "zoujingli/ip2region": "^1.0",
     "aliyuncs/oss-sdk-php": "^2.2",
-    "topthink/think-captcha": "^2.0",
-    "zoujingli/weopen-developer": "^1.1",
-    "topthink/think-swoole": "2.0.*"
+    "topthink/think-captcha": "^2.0"
   }
 }

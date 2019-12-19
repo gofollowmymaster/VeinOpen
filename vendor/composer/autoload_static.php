@@ -7,47 +7,26 @@ namespace Composer\Autoload;
 class ComposerStaticInit7e3cd2a412126a21c716fbb2ec804cf4
 {
     public static $files = array (
-        'bd9634f2d41831496de0d3dfe4c94881' => __DIR__ . '/..' . '/symfony/polyfill-php56/bootstrap.php',
-        '9b552a3cc426e3287cc811caefa3cf53' => __DIR__ . '/..' . '/topthink/think-helper/src/helper.php',
-        'cc56288302d9df745d97c934d6a6e5f0' => __DIR__ . '/..' . '/topthink/think-queue/src/common.php',
         '841780ea2e1d6545ea3a253239d59c05' => __DIR__ . '/..' . '/qiniu/php-sdk/src/Qiniu/functions.php',
+        'bd9634f2d41831496de0d3dfe4c94881' => __DIR__ . '/..' . '/symfony/polyfill-php56/bootstrap.php',
         '1cfd2761b63b0a29ed23657ea394cb2d' => __DIR__ . '/..' . '/topthink/think-captcha/src/helper.php',
-        'ea51e7f80936725691663347d5b38bd9' => __DIR__ . '/..' . '/topthink/think-swoole/src/command.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         't' => 
         array (
-            'think\\swoole\\' => 13,
             'think\\composer\\' => 15,
             'think\\captcha\\' => 14,
-            'think\\' => 6,
-        ),
-        'X' => 
-        array (
-            'XCron\\' => 6,
-        ),
-        'W' => 
-        array (
-            'WePay\\' => 6,
-            'WeOpen\\' => 7,
-            'WeMini\\' => 7,
-            'WeChat\\' => 7,
         ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Util\\' => 22,
             'Symfony\\Polyfill\\Php56\\' => 23,
             'Symfony\\Component\\OptionsResolver\\' => 34,
-            'SuperClosure\\' => 13,
         ),
         'Q' => 
         array (
             'Qiniu\\' => 6,
-        ),
-        'P' => 
-        array (
-            'PhpParser\\' => 10,
         ),
         'O' => 
         array (
@@ -57,17 +36,9 @@ class ComposerStaticInit7e3cd2a412126a21c716fbb2ec804cf4
         array (
             'Endroid\\QrCode\\' => 15,
         ),
-        'A' => 
-        array (
-            'AliPay\\' => 7,
-        ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'think\\swoole\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/topthink/think-swoole/src',
-        ),
         'think\\composer\\' => 
         array (
             0 => __DIR__ . '/..' . '/topthink/think-installer/src',
@@ -75,33 +46,6 @@ class ComposerStaticInit7e3cd2a412126a21c716fbb2ec804cf4
         'think\\captcha\\' => 
         array (
             0 => __DIR__ . '/..' . '/topthink/think-captcha/src',
-        ),
-        'think\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/topthink/think-helper/src',
-            1 => __DIR__ . '/..' . '/topthink/think-queue/src',
-        ),
-        'XCron\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/xavier/xcron-expression/src/Cron',
-        ),
-        'WePay\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zoujingli/wechat-developer/WePay',
-        ),
-        'WeOpen\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zoujingli/weopen-developer/WeOpen',
-        ),
-        'WeMini\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zoujingli/wechat-developer/WeMini',
-            1 => __DIR__ . '/..' . '/zoujingli/weopen-developer/WeMini',
-        ),
-        'WeChat\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zoujingli/wechat-developer/WeChat',
-            1 => __DIR__ . '/..' . '/zoujingli/weopen-developer/WeChat',
         ),
         'Symfony\\Polyfill\\Util\\' => 
         array (
@@ -115,17 +59,9 @@ class ComposerStaticInit7e3cd2a412126a21c716fbb2ec804cf4
         array (
             0 => __DIR__ . '/..' . '/symfony/options-resolver',
         ),
-        'SuperClosure\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/jeremeamia/superclosure/src',
-        ),
         'Qiniu\\' => 
         array (
             0 => __DIR__ . '/..' . '/qiniu/php-sdk/src/Qiniu',
-        ),
-        'PhpParser\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
         ),
         'OSS\\' => 
         array (
@@ -135,15 +71,10 @@ class ComposerStaticInit7e3cd2a412126a21c716fbb2ec804cf4
         array (
             0 => __DIR__ . '/..' . '/endroid/qr-code/src',
         ),
-        'AliPay\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/zoujingli/wechat-developer/AliPay',
-        ),
     );
 
     public static $classMap = array (
         'Ip2Region' => __DIR__ . '/..' . '/zoujingli/ip2region/Ip2Region.php',
-        'We' => __DIR__ . '/..' . '/zoujingli/wechat-developer/We.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

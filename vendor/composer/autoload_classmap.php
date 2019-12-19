@@ -7,5 +7,4 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Ip2Region' => $vendorDir . '/zoujingli/ip2region/Ip2Region.php',
-    'We' => $vendorDir . '/zoujingli/wechat-developer/We.php',
 );
