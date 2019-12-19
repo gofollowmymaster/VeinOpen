@@ -24,11 +24,11 @@ class Node {
 
     public function searchNodes($module = '') {
 
-        $nodes = $this->getNodesInDb(['module'=>$module]);
-        $nodes=$this->addPnodeToNodes($nodes);
+        $nodes=$this->getNodesInDbWithPnode($module);
         $nodes = arr2table($nodes, 'node', 'pnode');
         $groups = [];
         foreach ($nodes as $node) {
+            unset($node['path']);
             $pnode = explode('/', $node['node'])[0];
             if ($node['node'] === $pnode) {
                 $groups[$pnode]['node'] = $node;
@@ -117,7 +117,12 @@ class Node {
         return $nodes;
     }
 
-    public function getNodesInDb(array $search=[]) {
+    public function getNodesInDbWithPnode(string $module=''){
+        $nodes = $this->getNodesInDb(['module'=>$module]);
+        return $this->addPnodeToNodes($nodes);
+    }
+
+    public function getNodesInDb(array $search=[],string $field='node,is_menu,is_auth,is_login,title') {
 
         $query=new Query();
         foreach (['status','is_menu','is_auth','is_login'] as $key){
@@ -127,7 +132,7 @@ class Node {
         }
         $module=$search['module']??'';
         $query->whereLike('node',"{$module}%");
-        $nodesInDb=$this->model->where($query)->column('node,is_menu,is_auth,is_login,title');
+        $nodesInDb=$this->model->where($query)->column($field);
         return $nodesInDb;
     }
     protected function addPnodeToNodes($nodesInDb){

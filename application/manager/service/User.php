@@ -32,12 +32,12 @@ class User {
             $query->where('firm_id', $search['firm_id']);
         }
         $result=$this->model->where($query)
-                            ->field('id,firm_id,username,password,mail,phone,desc,status')
+                            ->field('id,firm_id,username,mail,phone,desc,status')
                             ->paginate(10);
         return $result;
     }
     public function getUserById($id){
-        $result = $this->model->where(['id' => $id])->field('id,username,qq,mail,phone,firm_id,desc,authorize')->findOrEmpty()->toArray();
+        $result = $this->model->where(['id' => $id])->field('id,username,mail,phone,firm_id,desc,authorize')->findOrEmpty()->toArray();
         isEmptyInDb($result, '不存在的用户');
         return $result;
     }

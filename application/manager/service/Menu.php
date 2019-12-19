@@ -46,18 +46,24 @@ class Menu {
 
         return $result;
     }
-
-    public function getFatherMenus() {
+    public function getMenus() {
         $_menus = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title')->selectOrFail()
                               ->toArray();
-        $_menus[] = ['title' => '顶级菜单', 'id' => '0', 'pid' => '-1'];
+//        $_menus[] = ['title' => '顶级菜单', 'id' => '0', 'pid' => '-1'];
         $menus = arr2table($_menus);
+
+        return $menus;
+    }
+
+    public function getFatherMenus() {
+        $menus = $this->getMenus();
         foreach ($menus as $key => &$menu) {
             if (substr_count($menu['path'], '-') > 3) {
                 unset($menus[$key]);
                 continue;
             }
         }
+        array_unshift($menus,['title' => '顶级菜单', 'id' => '0', 'pid' => '-1']);
         return $menus;
     }
 

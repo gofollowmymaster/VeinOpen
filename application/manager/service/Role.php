@@ -55,11 +55,14 @@ class Role {
     public function getAuthNode($auth)
     {
         $node=new NodeServer(new \app\manager\model\Node());
-        $nodes = $node->getNodesInDb();
-        $nodes=$this->addPnodeToNodes($nodes);
+        $nodes = $node->getNodesInDbWithPnode();
         $checked =Access::where(['auth' => $auth])->column('node');
         foreach ($nodes as &$node) {
             $node['checked'] = in_array($node['node'], $checked);
+            unset($node['is_menu']);
+            unset($node['is_auth']);
+            unset($node['is_login']);
+            unset($node['status']);
         }
         $result = $this->buildNodeTree(arr2tree($nodes, 'node', 'pnode', '_sub_'));
        return $result;

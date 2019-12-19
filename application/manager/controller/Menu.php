@@ -26,7 +26,7 @@ class Menu extends Controller {
      */
     public function index() {
 
-        $menus = $this->service->getUserMenuTree(!!session('user'));
+        $menus = $this->service->getMenus();
         return $this->jsonReturn(0, '操作成功', $menus);
     }
     public function fatherMenus() {
