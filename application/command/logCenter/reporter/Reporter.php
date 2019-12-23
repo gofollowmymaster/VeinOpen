@@ -6,43 +6,25 @@
  * Time: 10:05
  */
 
-namespace app\common\tool;
-
-use app\common\traits\SingletonTrait;
-use think\facade\Log;
+namespace app\command\logCenter\reporter;
 
 class Reporter {
-    use SingletonTrait;
     const MESSAGE_LIST = 'reporter:send:notice:message';
     const LIST_VOLUME  = 1000;
 
-    private static $instance;
 
     private $config;
     private $messager;
     private $redis;
     private $isAsyn = false;
 
-    private function __construct(array $config) {
+    public function __construct(array $config) {
 
-        $this->config = $config['messager']['groups'];
+        $this->config = $config['groups'];
         $this->isAsyn = $config['asyn_mode'] ?? false;
-        $messager = 'app\common\tool\messager\\' . $config['messager']['type'];
+        $messager = 'app\command\logCenter\reporter\messager\\' . $config['type'];
         $this->messager = new $messager($this->config);
     }
-
-//    /**
-//     * 获取认证实例
-//     * @param $busId
-//     * @return DeviceGateRule
-//     * @throws \Exception
-//     */
-//    public static function getInstance(array $config) {
-//        if (empty(self::$instance)) {
-//            self::$instance = new self($config);
-//        }
-//        return self::$instance;
-//    }
 
 
     public function Report(string $message, $destination = 'default') {
@@ -53,7 +35,7 @@ class Reporter {
                 $this->send($message, $value);
             }
         } catch (\Throwable $e) {
-            Log::error('发送Ding消息失败:' . $e->getMessage());
+            echo ('发送Ding消息失败:' . $e->getMessage());
         }
     }
 
@@ -68,7 +50,7 @@ class Reporter {
             $res = json_decode($res, true);
         }
         if (!$res || $res['errcode']) {
-            throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
+           echo ('发送Ding消息失败' . $res['errmsg'] ?? '');
         }
     }
 
@@ -76,7 +58,6 @@ class Reporter {
     private function buildMessage($message, $destination) {
         $keywords = $this->config[$destination]['keywords'];
         $message = $keywords . "\n" . $message . "\n";
-        Log::error($message);
         return $message;
     }
 
@@ -94,6 +75,4 @@ class Reporter {
         return false;
     }
 
-//    private function __clone() {
-//    }
 }

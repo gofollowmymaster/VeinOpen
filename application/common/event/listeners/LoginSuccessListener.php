@@ -9,7 +9,7 @@
 namespace app\common\event\listeners;
 
 use app\common\event\events\Event;
-use app\common\service\NodeService;
+use app\common\service\AuthService;
 use app\common\service\LogService;
 use think\Db;
 
@@ -25,7 +25,7 @@ class LoginSuccessListener extends EventListener {
         Db::name('SystemUser')->where(['id' => $user['id']])
                               ->update(['login_at'  => Db::raw('now()'),
                                         'login_num' => Db::raw('login_num+1'),]);
-        !empty($user['authorize']) && NodeService::applyAuthNode();
+        !empty($user['authorize']) && AuthService::applyAuthNode();
         LogService::write('系统管理', '用户登录系统成功');
     }
 

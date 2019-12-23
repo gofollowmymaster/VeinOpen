@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: 123456
+ * User: zh
  * Date: 2019/12/5
  * Time: 10:55
  * description:描述
@@ -44,9 +44,13 @@ class ExceptionHandle extends Handle {
 
     private function buildReportContent(\Throwable $exception) {
         // 收集异常数据
-        $log = "\n请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
-        $log .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
-        $log .= "\n来源IP:" . getRealIp();
+        $log='';
+        if(PHP_SAPI!='cli'){
+            $log = "\n请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+            $log .= "\n请求URI:" . $_SERVER['REQUEST_URI']??'';
+            $log .= "\n来源IP:" . getRealIp();
+        }
+
         $log .= "\n请求异常:";
 
         if (Container::get('app')->isDebug()) {

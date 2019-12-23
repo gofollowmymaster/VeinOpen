@@ -1,8 +1,8 @@
 <?php
 
-use app\common\service\DataService;
-use app\common\service\NodeService;
+use app\common\service\AuthService;
 use think\Db;
+use think\facade\Log;
 
 /**
  * 打印输出数据到文件
@@ -23,28 +23,9 @@ function p($data, $force = false, $file = null) {
  * @return bool
  */
 function auth($node) {
-    return NodeService::checkAuthNode($node);
+    return AuthService::checkAuthNode($node);
 }
 
-/**
- * 设备或配置系统参数
- * @param string $name 参数名称
- * @param bool   $value 默认是null为获取值，否则为更新
- * @return string|bool
- * @throws \think\Exception
- * @throws \think\exception\PDOException
- */
-function sysconf($name, $value = null) {
-    static $config = [];
-    if ($value !== null) {
-        list($config, $data) = [[], ['name' => $name, 'value' => $value]];
-        return DataService::save('SystemConfig', $data, 'name');
-    }
-    if (empty($config)) {
-        $config = Db::name('SystemConfig')->column('name,value');
-    }
-    return isset($config[$name]) ? $config[$name] : '';
-}
 
 /**
  * 日期格式标准输出
@@ -127,27 +108,7 @@ function corsRequestHander() {
             'Access-Control-Allow-Methods' => 'GET,POST,OPTIONS', 'Access-Control-Allow-Credentials' => "true",];
 }
 
-/**
- * 返回成功的操作
- * @param mixed   $msg 消息内容
- * @param array   $data 返回数据
- * @param integer $code 返回代码
- */
-function success($msg, $data = [], $code = 1) {
-    $result = ['code' => $code, 'msg' => $msg, 'data' => $data, 'token' => encode(session_name() . '=' . session_id())];
-    throw new HttpResponseException(Response::create($result, 'json', 200, corsRequestHander()));
-}
 
-/**
- * 返回失败的请求
- * @param mixed   $msg 消息内容
- * @param array   $data 返回数据
- * @param integer $code 返回代码
- */
-function error($msg, $data = [], $code = 0) {
-    $result = ['code' => $code, 'msg' => $msg, 'data' => $data, 'token' => encode(session_name() . '=' . session_id())];
-    throw new HttpResponseException(Response::create($result, 'json', 200, corsRequestHander()));
-}
 
 /**
  * Emoji原形转换为String
@@ -278,8 +239,8 @@ function parseKeyDot(array $data, $rule) {
  * 获取redis连接
  * @return object
  */
-function redis() {
-    $config = config('redis.');
+function redis(array $config=null) {
+    $config = $config?:config('redis.');
     return \app\common\tool\RedisClient::getInstance($config)->getRedis();
 }
 
@@ -288,12 +249,16 @@ function redis() {
  * @throws Exception
  */
 function report(string $content) {
-    $config = \think\Container::get('app')->config('reporter.');
-    $message = "请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
-    $message .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
-    $message .= "\n请求异常:" . $content;
-    //    $message .= "\n请求信息:\n" . serialize(request());
-    \app\common\tool\Reporter::getInstance($config)->Report($message);
+    try {
+        $config = \think\Container::get('app')->config('reporter.');
+        $message = "请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+        $message .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
+        $message .= "\n请求异常:" . $content;
+        $message .= "\n请求信息:\n" . json_encode(requestInfo());
+        \app\common\tool\Reporter::getInstance($config)->Report($message);
+    } catch (\Throwable $e) {
+        Log::error('report失败:内容='.$content);
+    }
 }
 
 /**
@@ -334,7 +299,7 @@ function isModelFailed($res, string $message) {
 }
 
 function requestInfo() {
-    return ['request' => request()->param(), 'response' => response()->getData(), 'user' => session('user')];
+    return ['request' => request()->param(), 'response' => response()->getData(), 'user' =>''];
 }
 
 function arrayToStr(array $array) {

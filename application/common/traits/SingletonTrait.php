@@ -12,7 +12,7 @@ Trait SingletonTrait{
 
     private static $instance;
 
-    private function __construct() {
+    private function __construct($data) {
 
     }
 
@@ -22,9 +22,9 @@ Trait SingletonTrait{
      * @return DeviceGateRule
      * @throws \Exception
      */
-    public static function getInstance() {
+    public static function getInstance($data) {
         if (empty(self::$instance)) {
-            self::$instance = new self();
+            self::$instance = new self($data);
         }
         return self::$instance;
     }

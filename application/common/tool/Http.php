@@ -14,6 +14,8 @@
 
 namespace app\common\tool;
 
+use app\common\exception\WarringException;
+
 /**
  * HTTP请求服务
  * Class Http
@@ -91,7 +93,11 @@ class Http
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         list($content, $status) = [curl_exec($curl), curl_getinfo($curl), curl_close($curl)];
-        return (intval($status["http_code"]) === 200) ? $content : false;
+        $httpCode=intval($status["http_code"]);
+        if($httpCode !== 200){
+            throw new WarringException('HTTP请求状态为'.$httpCode.':详情'.json_encode($status),$httpCode);
+        }
+        return  $content ;
     }
 
     /**

@@ -198,6 +198,7 @@ class Log implements LoggerInterface
      */
     public function save()
     {
+
         if (empty($this->log) || !$this->allowWrite) {
             return true;
         }

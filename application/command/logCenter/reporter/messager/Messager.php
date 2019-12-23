@@ -1,15 +1,16 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: 123456
+ * User: zh
  * Date: 2019/12/5
  * Time: 14:55
  * description:描述
  */
 
-namespace app\common\tool\messenger;
+namespace app\command\logCenter\reporter\messager;
 
-abstract class Messenger {
+
+abstract class Messager {
 
     abstract public function handle(string $message,$destination) ;
 }

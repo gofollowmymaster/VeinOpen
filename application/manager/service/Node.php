@@ -10,7 +10,6 @@
 namespace app\manager\service;
 
 use \app\manager\model\Node as NodeModel;
-use think\Db;
 use think\db\Query;
 
 class Node {
@@ -37,8 +36,6 @@ class Node {
         }
         return $groups;
     }
-
-
 
     public function clearNodes(string $module) {
         $nodes = array_keys($this->getNodesAllDetail($module));
@@ -104,7 +101,7 @@ class Node {
         foreach ($this->getNodeInFile(env('app_path')."{$module}") as $thr) {
             foreach ($this->ignore as $str) {
                 if (stripos($thr, $str) === 0) {
-                    continue ;
+                    continue 2;
                 }
             }
             $tmp = explode('/', $thr);
@@ -141,7 +138,7 @@ class Node {
             $thr=$node['node'];
             foreach ($this->ignore as $str) {
                 if (stripos($thr, $str) === 0) {
-                    continue ;
+                    continue 2;
                 }
             }
             $tmp = explode('/', $thr);

@@ -6,6 +6,7 @@ use app\common\event\events\LoginSuccessEvent;
 use app\common\exception\AuthException;
 use service\LogService;
 use think\Controller;
+use think\facade\Log;
 use think\Db;
 
 
@@ -39,6 +40,8 @@ class Login extends Controller
 
         // 用户信息验证
         $user = Db::name('SystemUser')->where(['username' => $param['username']])->find();
+        Log::error('yrdy!');
+
         if(empty($user)){
             throw new AuthException('登录账号不存在，请重新输入!');
         }

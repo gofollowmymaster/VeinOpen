@@ -7,11 +7,11 @@
  * description:描述
  */
 
-namespace app\common\tool\messenger;
+namespace app\command\logCenter\reporter\messager;
 
 use app\common\tool\Http;
 
-class Ding extends Messenger {
+class Ding extends Messager {
     private $client;
     private $config;
     private $gate = "https://oapi.dingtalk.com/robot/send?access_token=";
