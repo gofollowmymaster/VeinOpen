@@ -20,7 +20,7 @@ class MenuValidate extends Validate {
 //        'id' => 'number',
         'pid' => 'requireCallback:requireWhenCreate|number',
         'title' => 'requireCallback:requireWhenCreate|chsDash',
-        'url' => 'requireCallback:requireWhenCreate|checkUrl:thinkphp',
+        'url' => 'checkUrl:thinkphp',
         'furl' => 'requireCallback:requireWhenCreate',
     ];
 

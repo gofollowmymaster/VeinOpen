@@ -205,6 +205,31 @@ function arr2tree($list, $id = 'id', $pid = 'pid', $son = 'sub') {
  * @param string $ppath
  * @return array
  */
+function arr2tablebak(array $list, $id = 'id', $pid = 'pid', $path = 'path', $ppath = '') {
+    $tree = [];
+    foreach (arr2tree($list, $id, $pid) as $attr) {
+        $attr[$path] = "{$ppath}-{$attr[$id]}";
+        $attr['sub'] = isset($attr['sub']) ? $attr['sub'] : [];
+        $attr['spt'] = substr_count($ppath, '-');
+        $attr['spl'] = str_repeat("&nbsp;&nbsp;&nbsp;├&nbsp;&nbsp;", $attr['spt']);
+        $sub = $attr['sub'];
+        unset($attr['sub']);
+        $tree[] = $attr;
+        if (!empty($sub))
+            $tree = array_merge($tree, arr2table($sub, $id, $pid, $path, $attr[$path]));
+    }
+    return $tree;
+}
+
+/**
+ * 一维数据数组生成数据树
+ * @param array  $list 数据列表
+ * @param string $id ID Key
+ * @param string $pid 父ID Key
+ * @param string $path
+ * @param string $ppath
+ * @return array
+ */
 function arr2table(array $list, $id = 'id', $pid = 'pid', $path = 'path', $ppath = '') {
     $tree = [];
     foreach (arr2tree($list, $id, $pid) as $attr) {
@@ -214,6 +239,7 @@ function arr2table(array $list, $id = 'id', $pid = 'pid', $path = 'path', $ppath
         $attr['spl'] = str_repeat("&nbsp;&nbsp;&nbsp;├&nbsp;&nbsp;", $attr['spt']);
         $sub = $attr['sub'];
         unset($attr['sub']);
+//        unset($attr['spt']);
         $tree[] = $attr;
         if (!empty($sub))
             $tree = array_merge($tree, arr2table($sub, $id, $pid, $path, $attr[$path]));

@@ -60,7 +60,7 @@ class Login extends Controller
                            ->order('sort asc,id asc')
                            ->column('furl');
 
-        return $this->jsonReturn(0,'登陆成功',$redirectUrl);
+        return $this->jsonReturn(0,'登陆成功',['redirectUrl'=>$redirectUrl[0]]);
     }
 
     /**

@@ -40,10 +40,10 @@ class Menu {
 
     public function getUserMenuTree( bool $isLogin) {
         $nodes=session('user.nodes');
-        $nodes=array_merge($nodes,['#']);
+        $nodes=array_merge($nodes,['']);
         $list = $this->model->where(['status' => '1'])->whereIn('url',$nodes)
                             ->order('sort asc,id asc')
-                            ->field('id,pid,title,node,url,furl')
+                            ->field('id,pid,title,url,furl')
                             ->select()->toArray();
         $result = $this->buildMenuData(arr2tree($list), $nodes, $isLogin);
 
@@ -84,24 +84,19 @@ class Menu {
      * @param bool  $isLogin 是否已经登录
      * @return array
      */
-    private function buildMenuData($menus, $nodes, $isLogin) {
+    private function buildMenuData($menus) {
         foreach ($menus as $key => &$menu) {
-            !empty($menu['sub']) && $menu['sub'] = $this->buildMenuData($menu['sub'], $nodes, $isLogin);
+            !empty($menu['sub']) && $menu['sub'] = $this->buildMenuData($menu['sub']);
             if (!empty($menu['sub'])) {
                 $menu['url'] = '#';
             } elseif (preg_match('/^https?\:/i', $menu['url'])) {
                 continue;
-            } elseif ($menu['url'] !== '#') {
-                $node = join('/', array_slice(explode('/', preg_replace('/[\W]/', '/', $menu['url'])), 0, 3));
-                $menu['url'] = url($menu['url']) . (empty($menu['params']) ? '' : "?{$menu['params']}");
-                if (isset($nodes[$node]) && $nodes[$node]['is_login'] && empty($isLogin)) {
-                    unset($menus[$key]);
-                } elseif (isset($nodes[$node]) && $nodes[$node]['is_auth'] && $isLogin && !auth($node)) {
-                    unset($menus[$key]);
-                }
-            } else {
+            }
+            if (empty($menu['sub'])&& !$menu['url']) {
                 unset($menus[$key]);
             }
+            unset($menu['url']);
+
         }
         return $menus;
     }
