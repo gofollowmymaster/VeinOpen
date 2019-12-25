@@ -16,12 +16,14 @@ class MenuValidate extends Validate {
     use ValidateTrait;
     //todo 验证父级菜单存在
     protected $rule =   [
+        'id' => 'number',
         'pid' => 'requireCallback:requireWhenCreate|number',
         'title' => 'requireCallback:requireWhenCreate|chsDash',
         'url' => 'requireCallback:requireWhenCreate',
     ];
 
     protected $message  =   [
+        'id.number' => 'ID格式错误！',
         'pid.number' => '父节点ID无效！',
         'pid.requireCallback' => '父节点不能为空！',
         'title.chsDash'     => '节点名称无效!',

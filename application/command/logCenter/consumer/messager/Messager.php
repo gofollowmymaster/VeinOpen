@@ -11,5 +11,5 @@ namespace app\command\logCenter\consumer\messager;
 
 abstract class Messager {
 
-    abstract public function handle( $message,$destination) ;
+    abstract public function handle(string $message,$destination) ;
 }

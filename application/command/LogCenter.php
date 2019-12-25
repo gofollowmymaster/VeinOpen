@@ -13,12 +13,15 @@ use app\command\logCenter\callback\OnReceive;
 use app\command\logCenter\callback\OnTask;
 use app\command\logCenter\redis\RedisPool;
 use app\command\logCenter\reporter\Reporter;
+use app\common\exception\WarringException;
 use think\console\Command;
 use think\console\Input;
 use think\console\input\Argument;
 use think\console\input\Option;
 use think\console\Output;
 use think\facade\Config;
+
+
 
 class LogCenter extends Command {
     private   $server;
@@ -66,27 +69,30 @@ class LogCenter extends Command {
             $server->shutdown();
             echo 'redis连接异常:' . $e->getMessage() . "\n";
         }
-        echo '定时启用tast数量' . count($this->topics) . "\n";
 
+        require __DIR__.DIRECTORY_SEPARATOR.'logCenter/helper.php';
 
+        //定时日志消费任务
         if ($workerId < $this->swooleConfig['worker_num']) {
+            output( '定时启用tast数量' . count($this->topics) );
             foreach ($this->topics as $topic) {
-
-                $server->tick(3000, function () use ($server,$topic ) {
-                    $server->task($topic);
+                $param=['fd'=>'null','server'=>'tick','time'=>time(),
+                        'request'=>['controller'=>'LogController','method'=>'consumeFromRedis',
+                                  'params'=>[['topic'=>$topic]]]];
+                $server->tick(5000, function () use ($server,$param ) {
+                    $server->task($param);
                 });
             }
         }
-
     }
 
     public function onStart($server) {
-        swoole_set_process_name("swoole_master_ding"); //主进程命名
+        swoole_set_process_name("swoole_master_log"); //主进程命名
     }
 
     public function onReceive($server, $fd, $reactorId, $data) {
-//        echo json_encode($server->stats());
 
+        output(json_encode($data));
         try {
             $onReceive = new OnReceive();
             $onReceive->index($server,$fd,$data);
@@ -96,25 +102,36 @@ class LogCenter extends Command {
         }finally{
             unset($onReceive);
         }
-//        return "task finish {$workerId} {$taskId} " . $topic;
+        output( "task finish {$server->work_id} {$fd} " . json_encode($data));
     }
 
-    public function onTask($ws, $workerId, $taskId, $topic) {
+    public function onTask($ws, $workerId, $taskId, $param) {
 
         try {
             $onTask = new OnTask();
-            $onTask->index($topic);
+            switch ($param['server']){
+                case 'tick':
+                    $onTask->tickTask($param);
+                    break;
+                case 'tcp':
+                    $onTask->tcpTask($param);
+                    break;
+                default:
+                    throw new WarringException('异常的任务来源!'.$param['server']);
+            }
+
+
         } catch (\Throwable $e) {
             $this->reporte('task执行异常:'.$e->getMessage());
-            return 'task执行异常:' . $e->getFile().'第'.$e->getLine().'行'.$e->getMessage() . "\n";
+            output( 'task执行异常:' . $e->getFile().'第'.$e->getLine().'行'.$e->getMessage() );
         }finally{
             unset($onTask);
         }
-        return "task finish {$workerId} {$taskId} " . $topic;
+        return "task finish {$workerId} {$taskId} " . json_encode($param);
     }
 
     public function onFinish($server, $taskId, $result) {
-        echo date('Y-m-d H:i:s') . " : " . $result . "\n";
+        output(  $result );
     }
 
     public function reporte(string $content){

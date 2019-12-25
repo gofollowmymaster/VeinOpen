@@ -19,7 +19,12 @@ Route::group('manager', function () {
     Route::post('index/info', 'index/info');
     Route::get('index/menus', 'index/menus');
     //菜单
-    Route::resource('menu','menu');
+//    Route::resource('menu','menu');
+    Route::get('menu/index','menu/index');
+    Route::post('menu/save','menu/save');
+    Route::get('menu/info','menu/edit');
+    Route::post('menu/delete','menu/delete');
+
     Route::get('menu/fathermenus', 'menu/fatherMenus');
     Route::get('menu/forbid/:id', 'menu/forbid');
     //角色

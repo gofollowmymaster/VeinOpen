@@ -21,7 +21,8 @@ class Ding extends Messager {
         $this->config = $config;
     }
 
-    public function handle( $message,$destination) {
+    public function handle( string $message,$destination) {
+        $message= $this->config[$destination]['keywords']."\n".$message;
         $message = ["msgtype" => "text", "text" => ["content" => $message],
                     "at"      => ["atMobiles" => [], "isAtAll" => false]];
         $token=$this->config[$destination]['token'];

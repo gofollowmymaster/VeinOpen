@@ -25,48 +25,33 @@ class Reporter {
 
     private function __construct(array $config) {
 
-        $this->config = $config['messager']['groups'];
+
+        $this->config = $config;
         $this->isAsyn = $config['asyn_mode'] ?? false;
-        $messager = 'app\common\tool\messager\\' . $config['messager']['type'];
-        $this->messager = new $messager($this->config);
+
     }
 
-//    /**
-//     * 获取认证实例
-//     * @param $busId
-//     * @return DeviceGateRule
-//     * @throws \Exception
-//     */
-//    public static function getInstance(array $config) {
-//        if (empty(self::$instance)) {
-//            self::$instance = new self($config);
-//        }
-//        return self::$instance;
-//    }
 
 
-    public function Report(string $message, $destination = 'default') {
-        $message = self::buildMessage($message, $destination);
+    public function Report(string $message) {
+//        $message = self::buildMessage($message);
         try {
-            $destination = is_array($destination) ?: [$destination];
-            foreach ($destination as $key => $value) {
-                $this->send($message, $value);
-            }
+            $message=['controller'=>"LogController",'method'=>"consumeFromRequest","params"=>[
+                "topic"=>'veinopen','message'=>$message
+            ]];
+                $this->send(json_encode($message));
+
         } catch (\Throwable $e) {
             Log::error('发送Ding消息失败:' . $e->getMessage());
         }
     }
 
-    private function send(string $message, $destination) {
-        $message = ["msgtype" => "text", "text" => ["content" => $message],
-                    "at"      => ["atMobiles" => [], "isAtAll" => false]];
-        if ($this->isAsyn && !$this->isPassListVolume(self::MESSAGE_LIST)) {
-            $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
-            $res = $this->getRedis()->lPush(self::MESSAGE_LIST, json_encode($content));
-        } else {
-            $res = $this->messager->handle(json_encode($message), $destination);
-            $res = json_decode($res, true);
-        }
+    private function send(string $message) {
+
+            $res=tcpPost($message, $this->config['Host'],  $this->config['Port']);
+//            $res = $this->messager->handle(json_encode($message), $destination);
+//            $res = json_decode($res, true);
+
         if (!$res || $res['errcode']) {
             throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
         }

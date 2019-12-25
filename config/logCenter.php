@@ -10,7 +10,7 @@
 return [
     'server' =>[
          'redis'=> [
-             'pool_size'=>3,
+             'pool_size'=>8,
              'pool_get_timeout'=>2,
              'host' => env('redis.master_hostname', '127.0.0.1'),
              'port' => env('redis.master_port', '6379'),
@@ -30,6 +30,7 @@ return [
     'consumers'=>[
         'messager'=>[
             'type'=> env('reporter.type','Ding'),
+            'filter' =>['repeat'=>60,'level'=>['error','emergency','critical','alert','warning']],
             "groups" => [
                 'default' => ['enabled'  => true, 'token'    => env('reporter.messager_default_token','cb3e7d7e0471f87aa853737135d850994d60013e5442460ac57e31635d9d431f'),
                               'timeout'  => 2.0, 'ssl_verify' => false,

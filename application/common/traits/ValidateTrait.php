@@ -16,4 +16,5 @@ Trait ValidateTrait {
        return ($id||$id===0||$id==='0') ?false: true;
     }
 
+
 }

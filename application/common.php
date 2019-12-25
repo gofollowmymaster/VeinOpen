@@ -109,6 +109,50 @@ function corsRequestHander() {
 }
 
 
+/**
+ * 设备或配置系统参数
+ * @param string $name 参数名称
+ * @param bool   $value 默认是null为获取值，否则为更新
+ * @return string|bool
+ * @throws \think\Exception
+ * @throws \think\exception\PDOException
+ */
+function sysconf($name, $value = null) {
+    static $config = [];
+    if ($value !== null) {
+        list($config, $data) = [[], ['name' => $name, 'value' => $value]];
+        return DataService::save('SystemConfig', $data, 'name');
+    }
+    if (empty($config)) {
+        $config = Db::name('SystemConfig')->column('name,value');
+    }
+    return isset($config[$name]) ? $config[$name] : '';
+}
+
+
+/**
+ * 返回成功的操作
+ * @param mixed   $msg 消息内容
+ * @param array   $data 返回数据
+ * @param integer $code 返回代码
+ */
+function success($msg, $data = [], $code = 1) {
+    $result = ['code' => $code, 'msg' => $msg, 'data' => $data, 'token' => encode(session_name() . '=' . session_id())];
+    throw new HttpResponseException(Response::create($result, 'json', 200, corsRequestHander()));
+}
+
+/**
+ * 返回失败的请求
+ * @param mixed   $msg 消息内容
+ * @param array   $data 返回数据
+ * @param integer $code 返回代码
+ */
+function error($msg, $data = [], $code = 0) {
+    $result = ['code' => $code, 'msg' => $msg, 'data' => $data, 'token' => encode(session_name() . '=' . session_id())];
+    throw new HttpResponseException(Response::create($result, 'json', 200, corsRequestHander()));
+}
+
+
 
 /**
  * Emoji原形转换为String

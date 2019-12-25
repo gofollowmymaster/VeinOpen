@@ -5,6 +5,7 @@ namespace think\log\driver;
 use think\App;
 use think\facade\Log;
 use think\facade\Request;
+use think\facade\Response;
 
 class Asyn {
 
@@ -37,14 +38,16 @@ class Asyn {
             $this->getDebugLog($log);
         }
 
-        $requestInfo = ['ip'   => $this->app['request']->ip(),
+        $request = ['ip'   => $this->app['request']->ip(),
                         'method' => $this->app['request']->method(),
                         'host' => $this->app['request']->host(),
                         'uri' => $this->app['request']->url(),
                         'param' => $this->app['request']->param(),
         ];
-        $log = $requestInfo + $log;
 
+        $response = ['reponse'   => $this->app['response'],
+        ];
+        $log = $request + $log+$response;
         $log['project']=$topic;
         $log['serverIp']=gethostbyname(gethostname());
         $log['time']=time();
@@ -59,15 +62,10 @@ class Asyn {
     private function send(string $message, $destination) {
 
         $messageQueue=self::MESSAGE_QUEUE.$destination;
-        if ( $this->config['messageQueue'] && !$this->isPassListVolume($messageQueue)) {
+        if ( !$this->isPassListVolume($messageQueue)) {
             $res = $this->getRedis()->lPush($messageQueue, $message);
         } else {
-            $message = ["msgtype" => "text", "text" => ["content" => $message],
-                        "at"      => ["atMobiles" => [], "isAtAll" => false]];
-            $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
-
-            $res = $this->messager->handle(json_encode($content), $destination);
-            $res = json_decode($res, true);
+            tcpPost($message, $this->config['LogHost'],  $this->config['LogPort']);
         }
         if (!$res || $res['errcode']) {
             throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
@@ -84,7 +82,7 @@ class Asyn {
         if ($this->redis) {
             return $this->redis;
         }
-        $config['master'][0]=$this->config['server'];
+        $config['master'][0]=$this->config['QueueServer'];
         if(empty($config)){
           //todo 日志服务中出现异常需要记录本地强制日志
             $config=[];

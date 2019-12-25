@@ -35,7 +35,7 @@ class Reporter {
                 $this->send($message, $value);
             }
         } catch (\Throwable $e) {
-            echo ('发送Ding消息失败:' . $e->getMessage());
+            output ('发送Ding消息失败:' . $e->getMessage());
         }
     }
 
@@ -50,7 +50,7 @@ class Reporter {
             $res = json_decode($res, true);
         }
         if (!$res || $res['errcode']) {
-           echo ('发送Ding消息失败' . $res['errmsg'] ?? '');
+            output ('发送Ding消息失败' . $res['errmsg'] ?? '');
         }
     }
 

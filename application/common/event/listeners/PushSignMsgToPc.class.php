@@ -76,7 +76,7 @@ class PushSignMsgToPc extends EventListener {
                 tcpPost(json_encode($sign_screen_data), $tcp_serial[$serial]['host'], $tcp_serial[$serial]['port']);
             }
         } catch (\Exception $e) {
-            dingText("推送签到消息失败:" . $e->getMessage() . ':$admin_id' . $admin_id . ':$serial' . $serial);
+            report("推送签到消息失败:" . $e->getMessage() . ':$admin_id' . $admin_id . ':$serial' . $serial);
             logw("推送签到消息失败:" . $e->getMessage() . ':$admin_id' . $admin_id . ':$serial' . $serial, Event::logFileName);
         }
     }

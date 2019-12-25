@@ -40,7 +40,7 @@ class Login extends Controller
 
         // 用户信息验证
         $user = Db::name('SystemUser')->where(['username' => $param['username']])->find();
-        Log::error('yrdy!');
+        report('yrdy!');
 
         if(empty($user)){
             throw new AuthException('登录账号不存在，请重新输入!');
@@ -56,6 +56,8 @@ class Login extends Controller
         session('user', $user);
         //触发登陆成功事件
         triggerEvent(new LoginSuccessEvent($user));
+
+        $redirectUrl= session('user.nodes')[0];
 
         return $this->jsonReturn(0,'登陆成功');
     }
