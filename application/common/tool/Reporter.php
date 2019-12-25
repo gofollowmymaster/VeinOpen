@@ -21,45 +21,64 @@ class Reporter {
     private $config;
     private $messager;
     private $redis;
-    private $isAsyn = false;
+    private $handle;
+    private $keywords;
 
     private function __construct(array $config) {
 
-
-        $this->config = $config;
-        $this->isAsyn = $config['asyn_mode'] ?? false;
+        $this->config = $config[$config['type']];
+        $this->handle = $config['type'];
+        $this->keywords = $config['keywords'];
+        if ($config['type'] == 'http') {
+            $messager = 'app\common\tool\messager\\' . $this->config['messagerType'];
+            $this->messager = new $messager($this->config['groups']);
+        }
 
     }
 
 
-
-    public function Report(string $message) {
-//        $message = self::buildMessage($message);
+    public function Report(string $message, $destination = 'default') {
+        $message = self::buildMessage($message);
         try {
-            $message=['controller'=>"LogController",'method'=>"consumeFromRequest","params"=>[
-                "topic"=>'veinopen','message'=>$message
-            ]];
-                $this->send(json_encode($message));
-
+            $handle = $this->handle;
+            $res = $this->$handle($message, $destination);
+            if (!$res || $res['errcode']) {
+                throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
+            }
         } catch (\Throwable $e) {
             Log::error('发送Ding消息失败:' . $e->getMessage());
         }
     }
 
-    private function send(string $message) {
+    private function http( $message, $destination = 'default') {
+        $message = ["msgtype" => "text", "text" => ["content" => $message],
+                    "at"      => ["atMobiles" => [], "isAtAll" => false]];
+        $res = $this->messager->handle(json_encode($message), $destination);
+        return json_decode($res, true);
 
-            $res=tcpPost($message, $this->config['Host'],  $this->config['Port']);
-//            $res = $this->messager->handle(json_encode($message), $destination);
-//            $res = json_decode($res, true);
+    }
 
-        if (!$res || $res['errcode']) {
-            throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
+    private function rpc( $message) {
+        $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
+                    "params"     => ["topic" => 'veinopen', 'message' => $message]];
+       return tcpPost($message, $this->config['Host'], $this->config['Port']);
+
+    }
+
+    private function queue( $message, $destination = 'default') {
+        $message = ["msgtype" => "text", "text" => ["content" => $message],
+                    "at"      => ["atMobiles" => [], "isAtAll" => false]];
+        if ( !$this->isPassListVolume(self::MESSAGE_LIST)) {
+            $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
+            $res = $this->getRedis()->lPush(self::MESSAGE_LIST, json_encode($content));
         }
+        return $res??false;
+
     }
 
 
-    private function buildMessage($message, $destination) {
-        $keywords = $this->config[$destination]['keywords'];
+    private function buildMessage($message) {
+        $keywords = $this->keywords;
         $message = $keywords . "\n" . $message . "\n";
         Log::error($message);
         return $message;
@@ -79,6 +98,5 @@ class Reporter {
         return false;
     }
 
-//    private function __clone() {
-//    }
+
 }

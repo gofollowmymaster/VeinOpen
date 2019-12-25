@@ -34,28 +34,17 @@ class Menu extends Controller {
         return $this->jsonReturn(0, '操作成功', $menus);
     }
 
-    /**
-     * @return \think\response\Json
-     */
-    public function create() {
-        $pid = $this->request->param('pid');
-        return $this->jsonReturn(0, '操作成功', ['pid'=>$pid]);
-    }
+
 
     /**
      * @return \think\response\Json
      */
     public function save() {
-        $param = $this->request->only(['id','pid' ,'title','url'],'post');
+        $param = $this->request->only(['pid' ,'title','url','furl'],'post');
         $this->validate($param, 'app\manager\validate\MenuValidate');
         //todo 检查是否有操作父菜单权限?
         //执行保存
-        if($param['id']){
-            unset($param['id']);
-            $this->service->updateMenuById($param['id'], $param);
-        }else{
-            $this->service->addMenu($param);
-        }
+        $this->service->addMenu($param);
         return $this->jsonReturn();
     }
 
@@ -66,22 +55,24 @@ class Menu extends Controller {
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function info($id) {
-        $menu = MenuModel::where(['id' => $id])->field('id,pid,title,url,status')->find()->toArray();
+    public function edit($id) {
+        $menu = MenuModel::where(['id' => $id])->field('id,pid,title,url,furl,status')->find()->toArray();
         isEmptyInDb($menu, '不存在的菜单');
         return $this->jsonReturn(0, '操作成功', $menu);
     }
 
-//    public function update($id) {
-//        //验证数据
-//        $param = $this->request->only(['id','pid' ,'title','url'],'post');
-//        $this->validate($param, 'app\manager\validate\MenuValidate');
-//        unset($param['id']);
-//        //执行更新
-//        $this->service->updateMenuById($id, $param);
-//        //返回数据
-//        return $this->jsonReturn();
-//    }
+    public function update($id) {
+        //验证数据
+        $param = $this->request->only(['id','pid' ,'title','url','furl'],'post');
+        $this->validate($param, 'app\manager\validate\MenuValidate');
+        unset($param['id']);
+        //执行更新
+        $this->service->updateMenuById($id, $param);
+        //返回数据
+        return $this->jsonReturn();
+    }
+
+
 
     /**
      * 删除菜单
@@ -95,16 +86,6 @@ class Menu extends Controller {
         return $this->jsonReturn();
     }
 
-    /**
-     * 菜单禁用
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    protected function forbid($id) {
-        $this->service->updateMenuById($id, ['status'=>0]);
-        //返回数据
-        return $this->jsonReturn();
-    }
 
 
 

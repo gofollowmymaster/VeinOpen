@@ -39,15 +39,25 @@ class Menu {
     }
 
     public function getUserMenuTree( bool $isLogin) {
-        $nodes=NodeModel::where('status',1)->select()->toArray();
-        $list = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title,node,url')
+        $nodes=session('user.nodes');
+        $nodes=array_merge($nodes,['#']);
+        $list = $this->model->where(['status' => '1'])->whereIn('url',$nodes)
+                            ->order('sort asc,id asc')
+                            ->field('id,pid,title,node,url,furl')
                             ->select()->toArray();
         $result = $this->buildMenuData(arr2tree($list), $nodes, $isLogin);
 
         return $result;
     }
+    public function getUserRedirectMenu(){
+        $nodes=session('user.nodes');
+        return $this->model->where(['status' => '1'])->whereIn('url',$nodes)
+                            ->order('sort asc,id asc')
+                            ->column('furl');
+
+    }
     public function getMenus() {
-        $_menus = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title')->selectOrFail()
+        $_menus = $this->model->where(['status' => '1'])->order('sort asc,id asc')->field('id,pid,title,url,furl')->selectOrFail()
                               ->toArray();
 //        $_menus[] = ['title' => '顶级菜单', 'id' => '0', 'pid' => '-1'];
         $menus = arr2table($_menus);

@@ -15,7 +15,7 @@ use think\db\Query;
 class Node {
 
     private $model;
-    private $ignore = [ 'manager/login/index',];
+    private $ignore = [ 'manager/login','manager/index/'];
 
     public function __construct(NodeModel $model) {
         $this->model = $model;

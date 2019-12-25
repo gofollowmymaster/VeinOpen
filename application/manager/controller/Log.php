@@ -88,4 +88,5 @@ class Log extends BasicAdmin
         $this->error("日志删除失败, 请稍候再试!");
     }
 
+
 }

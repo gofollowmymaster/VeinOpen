@@ -6,7 +6,7 @@ use app\common\event\events\LoginSuccessEvent;
 use app\common\exception\AuthException;
 use service\LogService;
 use think\Controller;
-use think\facade\Log;
+use app\manager\model\Menu as MenuModel;
 use think\Db;
 
 
@@ -40,7 +40,6 @@ class Login extends Controller
 
         // 用户信息验证
         $user = Db::name('SystemUser')->where(['username' => $param['username']])->find();
-        report('yrdy!');
 
         if(empty($user)){
             throw new AuthException('登录账号不存在，请重新输入!');
@@ -56,10 +55,12 @@ class Login extends Controller
         session('user', $user);
         //触发登陆成功事件
         triggerEvent(new LoginSuccessEvent($user));
+        $nodes=session('user.nodes');
+        $redirectUrl= MenuModel::where(['status' => '1'])->whereIn('url',$nodes)
+                           ->order('sort asc,id asc')
+                           ->column('furl');
 
-        $redirectUrl= session('user.nodes')[0];
-
-        return $this->jsonReturn(0,'登陆成功');
+        return $this->jsonReturn(0,'登陆成功',$redirectUrl);
     }
 
     /**
@@ -78,6 +79,9 @@ class Login extends Controller
 
     public function php(){
         return phpinfo();
+    }
+    public function report(){
+        report('yrdy!');
     }
 
 }

@@ -37,8 +37,13 @@ class AuthService
     public static function applyAuthNode()
     {
         cache('need_access_node', null);
-        if (($userid = session('user.id'))) {
-            session('user', Db::name('SystemUser')->where(['id' => $userid])->find());
+        $userid = session('user.id');
+//        if (($userid = session('user.id'))) {
+//            session('user', Db::name('SystemUser')->where(['id' => $userid])->find());
+//        }
+        if($userid==10000){
+            $nodes=Db::name('SystemNode')->where(['status'=>1])->column('node');
+            return session('user.nodes', $nodes);
         }
         if (($authorize = session('user.authorize'))) {
             $where = ['status' => '1'];
@@ -81,6 +86,7 @@ class AuthService
         if (!in_array($currentNode, self::getAuthNode())) {
             return true;
         }
+        $userNodes=session('user.nodes');
         return in_array($currentNode, (array)session('user.nodes'));
     }
 
