@@ -17,7 +17,7 @@ class Firm extends Model {
     protected $deleteTime = 'delete_at';
     protected $defaultSoftDelete = '0';
 
-    protected $table = 'system_firm';
+    protected $table = 'open_firm';
     protected $pk    = 'id';
 
 

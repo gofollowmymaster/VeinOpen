@@ -17,7 +17,7 @@ class Space extends Model {
     protected $deleteTime = 'delete_at';
     protected $defaultSoftDelete = '0';
 
-    protected $table = 'system_space';
+    protected $table = 'open_space';
     protected $pk    = 'id';
 
 

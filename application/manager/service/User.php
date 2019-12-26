@@ -25,14 +25,15 @@ class User {
 
         foreach (['username', 'phone'] as $key) {
             if ((isset($search[$key]) && $search[$key] !== '')) {
-                $query->whereLike($key, "%{$search[$key]}%");
+                $query->whereLike('u.'.$key, "%{$search[$key]}%");
             }
         }
         if (isset($search['firm_id'])&& $search['firm_id']!=='') {
-            $query->where('firm_id', $search['firm_id']);
+            $query->where('u.firm_id', $search['firm_id']);
         }
-        $result=$this->model->where($query)
-                            ->field('id,firm_id,username,mail,phone,desc,status')
+        $query->where('of.status', 1);
+        $result=$this->model->alias('u')->join('open_firm of','u.firm_id=of.id')->where($query)
+                            ->field('u.id,u.username,u.mail,u.phone,u.desc,u.status,of.firm_name')
                             ->paginate(10);
         return $result;
     }
