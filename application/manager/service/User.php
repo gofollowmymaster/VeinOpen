@@ -33,7 +33,7 @@ class User {
         }
         $query->where('of.status', 1);
         $result=$this->model->alias('u')->join('open_firm of','u.firm_id=of.id')->where($query)
-                            ->field('u.id,u.username,u.mail,u.phone,u.desc,u.status,of.firm_name')
+                            ->field('u.id,u.username,u.phone,u.desc,u.status,of.firm_name')
                             ->paginate(10);
         return $result;
     }

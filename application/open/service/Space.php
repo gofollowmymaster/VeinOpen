@@ -25,13 +25,15 @@ class Space {
 
         foreach (['firm_id', 'phone','status'] as $key) {
             if ((isset($search[$key]) && $search[$key] !== '')) {
-                $query->where($key, "$search[$key]");
+                $query->where('s'.$key, "$search[$key]");
             }
         }
         if (isset($search['space_name']) && $search['space_name'] !== '') {
-            $query->whereLike('space_name', "{$search['space_name']}%");
+            $query->whereLike('s.space_name', "{$search['space_name']}%");
         }
-        $result = $this->model->where($query)->field('id,firm_id,space_name,phone,desc,status')->paginate(10);
+
+        $result = $this->model->alias('s')->join('open_firm of','s.firm_id=of.id')
+                                ->where($query)->field('s.id,of.firm_name,s.space_name,s.phone,s.desc,s.status')->paginate(10);
         return $result;
     }
 
