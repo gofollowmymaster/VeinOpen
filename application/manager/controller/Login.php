@@ -18,7 +18,7 @@ class Login extends Controller
      */
     public function initialize()
     {
-        if (session('user.id') && !in_array($this->request->action() ,['php','out'])) {
+        if (session('user.id') && !in_array($this->request->action() ,['report','php','out'])) {
             throw new AuthException('您已经登陆!');
         }
     }
