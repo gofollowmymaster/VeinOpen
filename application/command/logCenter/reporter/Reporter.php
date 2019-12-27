@@ -47,7 +47,7 @@ class Reporter {
                 throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
             }
         } catch (\Throwable $e) {
-            Log::error('发送Ding消息失败:' . $e->getMessage());
+            Log::error('发送Ding消息失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage(). $e->getMessage());
         }
     }
 

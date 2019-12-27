@@ -144,7 +144,7 @@ class LogCenter extends Command {
             reportLog($content,$this->reporterConfig);
 
         } catch (\Throwable $e) {
-            logToFile('report失败:内容='.$content);
+            logToFile('report失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage().'内容='.$content);
         }
     }
 
