@@ -92,7 +92,7 @@ class LogCenter extends Command {
 
     public function onReceive($server, $fd, $reactorId, $data) {
 
-        output("{$server->worker_id} {$fd}".'接受数据:'.$data=rtrim($data,$this->swooleConfig['package_eof']));
+        $data=rtrim($data,$this->swooleConfig['package_eof']);
         try {
 
             $onReceive = new OnReceive();

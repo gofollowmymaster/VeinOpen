@@ -11,12 +11,8 @@ class Asyn {
     const QUEUE_VOLUME  = 0;
 
 
-    private $config =  [
-        'messageQueue'   => 'redis',
-        'project' => 'default',
-    ];
+    private $config = ['messageQueue' => 'redis', 'project' => 'default',];
     private $redis;
-
 
 
     public function __construct(App $app, array $config = []) {
@@ -29,43 +25,40 @@ class Asyn {
 
 
     public function save(array $log, $append = false) {
+        try {
+            $topic = $this->config['project'];
+            if ($this->app->isDebug() && $append) {
+                $this->getDebugLog($log);
+            }
+            $request = ['ip'    => $this->app['request']->ip(), 'method' => $this->app['request']->method(),
+                        'host'  => $this->app['request']->host(), 'uri' => $this->app['request']->url(),
+                        'param' => $this->app['request']->param(),];
+            $log['extro'] = RequestLog::getInstance()->response;
+            $log = $request + $log;
+            $log['project'] = $topic;
+            $log['serverIp'] = gethostbyname(gethostname());
+            $log['time'] = date('Y-m-d H:i:s', time());
 
-//        $topic=$this->getLogTopic(array_keys($log));
-        $topic=$this->config['project'];
-        if ($this->app->isDebug() && $append) {
-            $this->getDebugLog($log);
+            return $this->send($log, $topic);
+        } catch (\Throwable $e) {
+            report('写入asyn日志异常:文件' . $e->getFile() . ' 第' . $e->getLine() . '行;' . $e->getMessage());
         }
-
-        $request = ['ip'   => $this->app['request']->ip(),
-                        'method' => $this->app['request']->method(),
-                        'host' => $this->app['request']->host(),
-                        'uri' => $this->app['request']->url(),
-                        'param' => $this->app['request']->param(),
-        ];
-        $log['extro'] =  RequestLog::getInstance()->response;
-        $log = $request + $log;
-        $log['project']=$topic;
-        $log['serverIp']=gethostbyname(gethostname());
-        $log['time']=date('Y-m-d H:i:s',time());
-
-        return $this->send($log,$topic);
-
     }
 
     private function send(array $content, $destination) {
 
-        $messageQueue=self::MESSAGE_QUEUE.$destination;
-        if ( !$this->isPassListVolume($messageQueue)) {
+        $messageQueue = self::MESSAGE_QUEUE . $destination;
+        if (!$this->isPassListVolume($messageQueue)) {
             $res = $this->getRedis()->lPush($messageQueue, json_encode($content));
         } else {
             $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
                         "params"     => ["topic" => 'veinopen', 'message' => $content]];
-            $res=tcpPost(json_encode($message), $this->config['LogHost'],  $this->config['LogPort']);
-            $res=json_decode($res,true);
+            $res = tcpPost(json_encode($message), $this->config['LogHost'], $this->config['LogPort']);
+            $res = json_decode($res, true);
         }
         if (!$res || $res['code']) {
-            logToFile('异步日志记录失败' . ($res['msg'] ?? '').'message='.json_encode($content));
-            throw new \Exception('异步日志记录失败' . $res['msg'] ??'' );
+            logToFile('异步日志记录失败' . ($res['msg'] ?? '') . 'message=' . json_encode($content));
+            throw new \Exception('异步日志记录失败' . $res['msg'] ?? '');
         }
         return $res;
     }
@@ -75,10 +68,10 @@ class Asyn {
         if ($this->redis) {
             return $this->redis;
         }
-        $config['master'][0]=$this->config['QueueServer'];
-        if(empty($config)){
-          //todo 日志服务中出现异常需要记录本地强制日志
-            $config=[];
+        $config['master'][0] = $this->config['QueueServer'];
+        if (empty($config)) {
+            //todo 日志服务中出现异常需要记录本地强制日志
+            $config = [];
         }
         return $this->redis = redis($config);
     }

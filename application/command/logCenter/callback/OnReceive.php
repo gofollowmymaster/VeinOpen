@@ -37,7 +37,6 @@ class OnReceive {
         if (!$res=$server->send($fd, $return)) {
             throw new WarringException('返回信息失败:fd='.$fd.'message='.$return);
         }
-//        output('推送数据结果:'.$res);
 
     }
     protected function TcpProtocolCheck(string $data) {
