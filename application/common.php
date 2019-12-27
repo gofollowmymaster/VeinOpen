@@ -332,7 +332,7 @@ function report(string $content) {
 
         \app\common\tool\Reporter::getInstance($config)->Report($message);
     } catch (\Throwable $e) {
-        Log::error('report失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage().' 内容'.$content);
+       logToFile('report失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage().' 内容'.$content,'reporter');
     }
 }
 

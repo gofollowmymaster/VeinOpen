@@ -57,7 +57,7 @@ class Asyn {
             $res = json_decode($res, true);
         }
         if (!$res || $res['code']) {
-            logToFile('异步日志记录失败' . ($res['msg'] ?? '') . 'message=' . json_encode($content));
+            logToFile('异步日志记录失败' . ($res['msg'] ?? '') . 'message=' . json_encode($content),'reporter');
             throw new \Exception('异步日志记录失败' . $res['msg'] ?? '');
         }
         return $res;
