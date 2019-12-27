@@ -12,25 +12,15 @@ namespace app\common\dataset;
 use app\common\exception\WarringException;
 use  app\common\traits\SingletonTrait;
 
-class RequestInfo {
+class RequestLog {
     use SingletonTrait;
 
     private $data;
-    private $canNotModifyFields = ['requestInfo', 'responseInfo', 'deviceInfo', 'userInfo'];
-    private $objectMembers      = ['deviceInfo', 'userInfo'];
+    private $canNotModifyFields = [];
+    private $objectMembers      = [];
 
     private function __construct() {
-        $this->data['userInfo'] = DeviceAuth::getInstance();
-        $this->data['deviceInfo'] = DeviceInfo::getInstance();
-    }
 
-    public function request($param = null) {
-        if (is_array($param)) {
-            return array_filter($this->data['requestInfo'], function ($key) use ($param) {
-                return in_array($key, $param);
-            }, ARRAY_FILTER_USE_KEY);
-        }
-        return $param ? $this->data['requestInfo'][$param] : $this->data['requestInfo'];
     }
 
     public function __set($name, $value) {
@@ -42,9 +32,6 @@ class RequestInfo {
 
     public function __get($name) {
         $result = $this->data[$name];
-        if (is_null($result)) {
-            $result = $this->data['requestInfo'][$name];
-        }
         return $result;
     }
 

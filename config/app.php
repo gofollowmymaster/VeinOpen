@@ -3,6 +3,7 @@
 
 return [
     // 应用调试模式
+    'environment'=>env('environment','test'),
     'app_debug'      => env('app_debug',false),
     // 应用Trace调试
     'app_trace'      => env('app_debug',false),

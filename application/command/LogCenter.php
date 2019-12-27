@@ -12,7 +12,6 @@ namespace app\command;
 use app\command\logCenter\callback\OnReceive;
 use app\command\logCenter\callback\OnTask;
 use app\command\logCenter\redis\RedisPool;
-use app\command\logCenter\reporter\Reporter;
 use app\common\exception\WarringException;
 use think\console\Command;
 use think\console\Input;
@@ -21,14 +20,13 @@ use think\console\input\Option;
 use think\console\Output;
 use think\facade\Config;
 
-
-
 class LogCenter extends Command {
     private   $server;
     protected $swooleConfig;
     protected $redisConfig;
     protected $topics;
     protected $messager;
+    protected $reporterConfig;
 
     protected function configure() {
         $this->setName('LogCenter')->setDescription('logcenter');
@@ -41,8 +39,7 @@ class LogCenter extends Command {
         $this->redisConfig = $config['server']['redis'];
         $this->topics = array_keys($config['topicConsumersMap']);
         date_default_timezone_set('Asia/Shanghai');
-        $this->messager = new Reporter($config['reporter']);
-
+        $this->reporterConfig=$config['reporter'];
     }
 
     public function execute(Input $input, Output $output) {
@@ -53,7 +50,10 @@ class LogCenter extends Command {
                             'max_request'      => $this->swooleConfig['max_request'],
                             'task_max_request' => $this->swooleConfig['task_max_request'],
                             'daemonize'        => $this->swooleConfig['daemonize'],
-                            'log_file'         => $this->swooleConfig['log_file'],]);
+                            'log_file'         => $this->swooleConfig['log_file'],
+                            'open_eof_check' => true, //打开EOF检测
+                            'package_eof' => $this->swooleConfig['package_eof'], //设置EOF
+            ]);
         $this->server->on('WorkerStart', [$this, 'onWorkStart']);
         $this->server->on('start', [$this, 'onStart']);
         $this->server->on('Receive', [$this, 'onReceive']);
@@ -92,17 +92,19 @@ class LogCenter extends Command {
 
     public function onReceive($server, $fd, $reactorId, $data) {
 
-        output(json_encode($data));
+        output("{$server->worker_id} {$fd}".'接受数据:'.$data=rtrim($data,$this->swooleConfig['package_eof']));
         try {
             $onReceive = new OnReceive();
             $onReceive->index($server,$fd,$data);
         } catch (\Throwable $e) {
-            $this->reporte('task执行异常:'.$e->getMessage());
-            return '执行异常:' . $e->getFile().'第'.$e->getLine().'行'.$e->getMessage() . "\n";
+            $this->report('task执行异常:'.$e->getMessage());
+            if (!$res=$server->send($fd,'task执行异常:'.$e->getMessage() )) {
+                output( "receive work finish {$server->worker_id} {$fd} " . '返回信息失败message='.$data);
+            }
         }finally{
             unset($onReceive);
         }
-        output( "task finish {$server->work_id} {$fd} " . json_encode($data));
+        output( "{$server->worker_id} {$fd} receive work finish " );
     }
 
     public function onTask($ws, $workerId, $taskId, $param) {
@@ -122,20 +124,25 @@ class LogCenter extends Command {
 
 
         } catch (\Throwable $e) {
-            $this->reporte('task执行异常:'.$e->getMessage());
+            $this->report('task执行异常:'.$e->getMessage());
             output( 'task执行异常:' . $e->getFile().'第'.$e->getLine().'行'.$e->getMessage() );
         }finally{
             unset($onTask);
         }
-        return "task finish {$workerId} {$taskId} " . json_encode($param);
+        return "{$workerId} {$taskId} task finish  " ;
     }
 
     public function onFinish($server, $taskId, $result) {
         output(  $result );
     }
 
-    public function reporte(string $content){
-        $this->messager->Report($content,'default');
+    public function report(string $content){
+        try {
+            reportLog($content,$this->reporterConfig);
+
+        } catch (\Throwable $e) {
+            logToFile('report失败:内容='.$content);
+        }
     }
 
 

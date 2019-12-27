@@ -94,7 +94,7 @@ class Error
             // 写入日志
             Container::get('log')->save();
         } catch (\Throwable $e) {
-            report('appShutdown写入日志异常');
+            report('appShutdown写入日志异常'.$e->getMessage());
         }
     }
 

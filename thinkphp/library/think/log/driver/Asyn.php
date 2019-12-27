@@ -2,15 +2,13 @@
 
 namespace think\log\driver;
 
+use app\common\dataset\RequestLog;
 use think\App;
-use think\facade\Log;
-use think\facade\Request;
-use think\facade\Response;
 
 class Asyn {
 
     const MESSAGE_QUEUE = 'logCenter:queue:';
-    const QUEUE_VOLUME  = 1000;
+    const QUEUE_VOLUME  = 0;
 
 
     private $config =  [
@@ -44,37 +42,32 @@ class Asyn {
                         'uri' => $this->app['request']->url(),
                         'param' => $this->app['request']->param(),
         ];
-
-        $response = ['reponse'   => $this->app['response'],
-        ];
-        $log = $request + $log+$response;
+        $log['extro'] =  RequestLog::getInstance()->response;
+        $log = $request + $log;
         $log['project']=$topic;
         $log['serverIp']=gethostbyname(gethostname());
-        $log['time']=time();
-        $log['logId']=md5(uniqid($topic,true));
+        $log['time']=date('Y-m-d H:i:s',time());
 
-        $message = json_encode($log, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-        return $this->send($message,$topic);
+        return $this->send($log,$topic);
 
     }
 
-    private function send(string $message, $destination) {
+    private function send(array $content, $destination) {
 
         $messageQueue=self::MESSAGE_QUEUE.$destination;
         if ( !$this->isPassListVolume($messageQueue)) {
-            $res = $this->getRedis()->lPush($messageQueue, $message);
+            $res = $this->getRedis()->lPush($messageQueue, json_encode($content));
         } else {
-            tcpPost($message, $this->config['LogHost'],  $this->config['LogPort']);
+            $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
+                        "params"     => ["topic" => 'veinopen', 'message' => $content]];
+            $res=tcpPost(json_encode($message), $this->config['LogHost'],  $this->config['LogPort']);
+            $res=json_decode($res,true);
         }
-        if (!$res || $res['errcode']) {
-            throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
+        if (!$res || $res['code']) {
+            logToFile('发送Ding消息失败' . ($res['msg'] ?? '').'message='.json_encode($content));
+            throw new \Exception('发送Ding消息失败' . $res['msg'] ??'' );
         }
         return $res;
-    }
-
-    private function getLogTopic(array $topic) {
-
     }
 
 
@@ -91,7 +84,7 @@ class Asyn {
     }
 
     private function isPassListVolume($key) {
-        if ($this->getRedis()->lLen($key) > self::QUEUE_VOLUME) {
+        if ($this->getRedis()->lLen($key) >= self::QUEUE_VOLUME) {
             return true;
         }
         return false;

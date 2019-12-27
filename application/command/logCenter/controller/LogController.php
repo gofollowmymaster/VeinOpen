@@ -12,11 +12,16 @@ namespace app\command\logCenter\controller;
 use app\command\logCenter\redis\RedisPool;
 use app\common\exception\ConfigException;
 use app\common\exception\WarringException;
+use app\command\logCenter\reporter\Reporter;
 use think\facade\Config;
+
 
 class LogController {
     const MESSAGE_QUEUE = 'logCenter:queue:';
+    const MESSAGE_DELAY_QUEUE = 'logCenter:zset:';
+    private $protocolKeys=['logId','ip','uri','time','project','serverIp'];
     private $consumerConfig;
+    protected $reporterConfig;
     private $topicConsumersMap;
     private $consumers;
     private $redis;
@@ -27,6 +32,8 @@ class LogController {
         $config = Config::get('logCenter.');
         $this->topicConsumersMap = $config['topicConsumersMap'];
         $this->consumerConfig = $config['consumers'];
+        $this->reporterConfig=$config['reporter'];
+
     }
 
     public function consumeFromRedis(array $params) {
@@ -42,16 +49,23 @@ class LogController {
         $this->redis = RedisPool::getInstance()->get();
 
         $topic = self::MESSAGE_QUEUE . $topic;
-        $num=0;
+        $num = 0;
         while (true) {
             $message = $this->redis->rPop($topic);
-            if (!$message||$num>100) {
+            if (!$message || $num > 100) {
                 break;
             }
-            $num++;
-            $this->messageHandles($message);
+            try{
+                output('message处理:' . $message);
+                $num++;
+                $this->messageHandles($message);
+            }catch(\Throwable $e){
+                output('消息处理异常:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage()."内容:".$message);
+                $this->report('消息处理异常:'.$e->getMessage()."\n内容:".$message);
+            }
+
         }
-        return ;
+        return;
     }
 
     /**
@@ -69,15 +83,14 @@ class LogController {
         }
     }
 
-    public function consumeFromRequest($params) {
-        $topic = $params['topic'];
-        $message=$params['message'];
+    public function consumeFromRequest(string $topic, array $message) {
+
         if (!key_exists($topic, $this->topicConsumersMap)) {
             throw new ConfigException('不存在的topic:' . $topic);
         }
         $this->initConsumers($this->topicConsumersMap[$topic]);
-        $this->messageHandles($message);
-        return ;
+        $this->messageHandles(json_encode($message));
+        return;
     }
 
     /**
@@ -85,14 +98,16 @@ class LogController {
      * @param $message
      * @return mixed|void
      */
-    private function messageHandles($message) {
+    private function messageHandles(string $message) {
 
         $message = json_decode($message, true);
-        //            echo "\n".'message:'.$message."\n";
+        //todo  日志协议检查
+        $this->logProtocolCheck($message);
+        output('message处理:' . $message['logId']);
         return $this->messageFilter($message, function ($message) {
             $result = [];
             foreach ($this->consumers as $consumer) {
-                output(' 消费信息:' . json_encode($message));
+                output(' 消费信息:' . $message['logId']);
                 $result[] = $res = $consumer->handle($message);
                 if ($res === false) {
                     throw new WarringException(" 消费信息失败,结果:" . $res);
@@ -103,11 +118,24 @@ class LogController {
 
     }
 
+    protected function logProtocolCheck(array $message) {
+
+        if($lack=array_diff($this->protocolKeys,array_keys($message))){
+            throw new WarringException('不支持的日志协议:缺少关键key:'.implode(',',$lack));
+        }
+    }
     protected function messageFilter(array $message, \Closure $func) {
 
         return $func($message);
     }
 
+    public function report(string $content){
+        try {
+            reportLog($content,$this->reporterConfig);
+        } catch (\Throwable $e) {
+            output('report失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage()."内容:".$content);
+        }
+    }
 
     function __destruct() {
         // TODO: Implement __destruct() method.

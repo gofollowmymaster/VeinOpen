@@ -321,10 +321,15 @@ function redis(array $config=null) {
 function report(string $content) {
     try {
         $config = \think\Container::get('app')->config('reporter.');
-        $message = "请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
-        $message .= "\n请求URI:" . $_SERVER['REQUEST_URI'];
-        $message .= "\n请求异常:" . $content;
-        $message .= "\n请求信息:\n" . json_encode(requestInfo());
+        $message=[];
+        $message['time']=date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+        $message['uri']=$_SERVER['REQUEST_URI'];
+        $message['error']=$content;
+        $message['ip'] = getRealIp();
+        $message['serverIp'] = gethostbyname(gethostname());
+        $message['project']='veinopen';
+        $message['info']='通知'.json_encode(requestInfo());
+
         \app\common\tool\Reporter::getInstance($config)->Report($message);
     } catch (\Throwable $e) {
         Log::error('report失败:内容='.$content);
@@ -369,10 +374,10 @@ function isModelFailed($res, string $message) {
 }
 
 function requestInfo() {
-    return ['request' => request()->param(), 'response' => response()->getData(), 'user' =>''];
+    return ['request' => request()->param(), 'response' => \app\common\dataset\RequestLog::getInstance()->response, 'user' =>''];
 }
 
-function arrayToStr(array $array) {
+function    arrayToStr(array $array) {
     $string = '';
     if(count($array)){
         foreach ($array as $key => $value) {
@@ -424,12 +429,72 @@ function tcpPost($sendMsg, $ip, $port) {
     }
     socket_write($socket, $sendMsg . "|end|");
 
-    $buff = socket_read($socket, 1024, PHP_NORMAL_READ);
-
-    if ($buff) {
-        think\facade\Log::error("Receive Data" . $buff, 'tcp-error');
-    }
+    $return = socket_read($socket,1024);
 
     socket_close($socket);
+    return $return;
+}
 
+
+if (!function_exists('logToFile')) {
+
+    function logToFile($msg, $fileName = 'logCenter') {
+        $environment=config('app.environment');
+        date_default_timezone_set('Asia/Chongqing');
+        $logFile = sprintf("/mnt/%s/log/qn-%s.%s.log",$environment, $fileName, date('Y-m-d', strtotime("today")));
+        // 判断日志有没有达到2g, 如果达到就用不前时间戳重命名
+        $flag = isOutSize($logFile);
+        if ($flag) {
+            // 重命名文件
+            $str = date('Y-m-d', strtotime("today")) . '-' . time();
+            $newName = sprintf("/mnt/%s/log/qn-%s.%s.log",$environment,$fileName, $str);
+            rename($logFile, $newName);
+        }
+        $hostName = phpversion() < "5.3.0" ? $_SERVER['HOSTNAME'] : gethostname();
+
+        $fp = fopen($logFile, 'a');
+        fwrite($fp, sprintf("%s\t%s\thostname=%s\n", date("H:i:s"), $msg, $hostName));
+        fclose($fp);
+    }
+}
+/**
+ *判断日志文件是否超过大小，超过2G返回true ,否则返回false,文件不存在return false
+ */
+if (!function_exists('isOutSize')) {
+
+    function isOutSize($logFile) {
+        $config_size = 56200000;
+        if (!file_exists($logFile)) {
+            return false;
+        }
+        $size = filesize($logFile);
+        if ($size < $config_size) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+}
+if (!function_exists('getRealIp')) {
+    function getRealIp() {
+        static $ip = false;
+        if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+            $ip = $_SERVER["HTTP_CLIENT_IP"];
+        }
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ips = explode(", ", $_SERVER['HTTP_X_FORWARDED_FOR']);
+            if ($ip) {
+                array_unshift($ips, $ip);
+                $ip = false;
+            }
+            for ($i = 0; $i < count($ips); $i++) {
+                if (!preg_match("/^(10|172\.16|192\.168)\./", $ips[$i])) {
+                    $ip = $ips[$i];
+                    break;
+                }
+            }
+        }
+        $ip = $ip ? $ip : $_SERVER['REMOTE_ADDR'];
+        return $ip;
+    }
 }

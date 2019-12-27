@@ -82,6 +82,7 @@ class Login extends Controller
     }
     public function report(){
         report('yrdy!');
+        return $this->jsonReturn();
     }
 
 }

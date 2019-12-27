@@ -424,6 +424,7 @@ if (!function_exists('json')) {
      */
     function json($data = [], $code = 200, $header = [], $options = [])
     {
+        \app\common\dataset\RequestLog::getInstance()->response=$data;
         return Response::create($data, 'json', $code, $header, $options);
     }
 }

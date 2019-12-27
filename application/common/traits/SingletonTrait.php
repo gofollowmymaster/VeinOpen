@@ -22,7 +22,7 @@ Trait SingletonTrait{
      * @return DeviceGateRule
      * @throws \Exception
      */
-    public static function getInstance($data) {
+    public static function getInstance(array $data=[]) {
         if (empty(self::$instance)) {
             self::$instance = new self($data);
         }

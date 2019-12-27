@@ -44,14 +44,15 @@ class ExceptionHandle extends Handle {
 
     private function buildReportContent(\Throwable $exception) {
         // 收集异常数据
-        $log='';
+
         if(PHP_SAPI!='cli'){
-            $log = "\n请求时间:" . date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
-            $log .= "\n请求URI:" . $_SERVER['REQUEST_URI']??'';
-            $log .= "\n来源IP:" . getRealIp();
+            $message['time']=date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']);
+            $message['uri']=$_SERVER['REQUEST_URI'];
+            $message['ip'] = getRealIp();
+
         }
 
-        $log .= "\n请求异常:";
+        $log = "请求异常:";
 
         if (Container::get('app')->isDebug()) {
             $data = ['file'    => $exception->getFile(), 'line' => $exception->getLine(),
@@ -73,9 +74,9 @@ class ExceptionHandle extends Handle {
         if (Container::get('app')->config('log.record_trace')) {
             $log .= "\r\n" . $exception->getTraceAsString();
         }
-        $log .= "\n请求信息:\n" . json_encode(requestInfo());
-
-        return $log;
+        $message['error']=$log;
+        $message['info']=json_encode(requestInfo());
+        return $message;
     }
 
     private function cutHeaderMsg(string $message) {

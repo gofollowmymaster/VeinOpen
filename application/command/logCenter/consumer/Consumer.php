@@ -13,5 +13,5 @@ interface Consumer {
 
     public function __construct(array $config);
 
-    public function handle($content) ;
+    public function handle(array $content) ;
 }

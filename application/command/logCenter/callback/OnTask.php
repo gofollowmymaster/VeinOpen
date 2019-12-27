@@ -20,7 +20,7 @@ class OnTask {
     }
 
     public function tickTask($task) {
-        output ('来自'.$task['server']."的任务:请求数据:".json_encode($task['request']));
+        output ('来自'.$task['server']."的任务:请求数据:".json_encode($task['request']['params']));
         $class= $task['request']['controller'];
         $method= $task['request']['method'];
         $params= $task['request']['params'];
@@ -32,10 +32,10 @@ class OnTask {
     }
 
     public function tcpTask($task) {
-        output ('来自'.$task['server']."的任务:请求数据:".json_encode($task['request'])."\n");
+        output ('来自'.$task['server']."的任务:请求数据:".json_encode($task['request']));
         $class= $task['request']['controller'];
         $method= $task['request']['method'];
-        $params= $task['request']['params'];
+        $params= is_array($task['request']['params'])?$task['request']['params']:json_decode($task['request']['params'],true);
 
         $class='app\command\logCenter\controller\\'.$class;
         $classObj = new $class();

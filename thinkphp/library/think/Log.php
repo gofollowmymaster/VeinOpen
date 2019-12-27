@@ -62,6 +62,8 @@ class Log implements LoggerInterface
     public function __construct(App $app)
     {
         $this->app = $app;
+        $this->log['logId']=md5(uniqid('veinopen',true));
+
     }
 
     public static function __make(App $app, Config $config)

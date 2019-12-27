@@ -8,55 +8,80 @@
 
 namespace app\command\logCenter\reporter;
 
+use app\common\traits\SingletonTrait;
+use think\facade\Log;
+
 class Reporter {
+    use SingletonTrait;
     const MESSAGE_LIST = 'reporter:send:notice:message';
     const LIST_VOLUME  = 1000;
 
+    private static $instance;
 
     private $config;
     private $messager;
     private $redis;
-    private $isAsyn = false;
+    private $handle;
+    private $keywords;
 
-    public function __construct(array $config) {
+    private function __construct(array $config) {
 
-        $this->config = $config['groups'];
-        $this->isAsyn = $config['asyn_mode'] ?? false;
-        $messager = 'app\command\logCenter\reporter\messager\\' . $config['type'];
-        $this->messager = new $messager($this->config);
+        $this->config = $config[$config['type']];
+        $this->handle = $config['type'];
+        $this->keywords = $config['keywords'];
+        if ($config['type'] == 'http') {
+            $messager = 'app\common\tool\messager\\' . $this->config['messagerType'];
+            $this->messager = new $messager($this->config['groups']);
+        }
+
     }
 
 
-    public function Report(string $message, $destination = 'default') {
-        $message = self::buildMessage($message, $destination);
+    public function Report(array $message, $destination = 'default') {
+
         try {
-            $destination = is_array($destination) ?: [$destination];
-            foreach ($destination as $key => $value) {
-                $this->send($message, $value);
+            $message = self::buildMessage($message);
+            $handle = $this->handle;
+            $res = $this->$handle($message, $destination);
+            if (!$res || $res['errcode']) {
+                throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
             }
         } catch (\Throwable $e) {
-            output ('发送Ding消息失败:' . $e->getMessage());
+            Log::error('发送Ding消息失败:' . $e->getMessage());
         }
     }
 
-    private function send(string $message, $destination) {
+    private function http($message, $destination = 'default') {
+
         $message = ["msgtype" => "text", "text" => ["content" => $message],
                     "at"      => ["atMobiles" => [], "isAtAll" => false]];
-        if ($this->isAsyn && !$this->isPassListVolume(self::MESSAGE_LIST)) {
+        $res = $this->messager->handle(json_encode($message), $destination);
+        return json_decode($res, true);
+
+    }
+
+    private function rpc($message) {
+        $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
+                    "params"     => ["topic" => 'veinopen', 'message' => $message]];
+        return tcpPost(json_encode($message), $this->config['Host'], $this->config['Port']);
+
+    }
+
+    private function queue($message, $destination = 'default') {
+        $message = self::buildMessage($message);
+        $message = ["msgtype" => "text", "text" => ["content" => $message],
+                    "at"      => ["atMobiles" => [], "isAtAll" => false]];
+        if (!$this->isPassListVolume(self::MESSAGE_LIST)) {
             $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
             $res = $this->getRedis()->lPush(self::MESSAGE_LIST, json_encode($content));
-        } else {
-            $res = $this->messager->handle(json_encode($message), $destination);
-            $res = json_decode($res, true);
         }
-        if (!$res || $res['errcode']) {
-            output ('发送Ding消息失败' . $res['errmsg'] ?? '');
-        }
+        return $res ?? false;
+
     }
 
 
-    private function buildMessage($message, $destination) {
-        $keywords = $this->config[$destination]['keywords'];
+    private function buildMessage($message) {
+        $keywords = $this->keywords;
         $message = $keywords . "\n" . $message . "\n";
         return $message;
     }

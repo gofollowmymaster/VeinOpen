@@ -33,13 +33,14 @@ class Reporter {
             $messager = 'app\common\tool\messager\\' . $this->config['messagerType'];
             $this->messager = new $messager($this->config['groups']);
         }
-
     }
 
 
-    public function Report(string $message, $destination = 'default') {
-        $message = self::buildMessage($message);
+    public function Report(array $message, $destination = 'default') {
+
         try {
+            Log::error($message['error']);
+            $message['logId'] = Log::getLog('logId');
             $handle = $this->handle;
             $res = $this->$handle($message, $destination);
             if (!$res || $res['errcode']) {
@@ -50,7 +51,8 @@ class Reporter {
         }
     }
 
-    private function http( $message, $destination = 'default') {
+    private function http($message, $destination = 'default') {
+        $message = self::buildMessage($message);
         $message = ["msgtype" => "text", "text" => ["content" => $message],
                     "at"      => ["atMobiles" => [], "isAtAll" => false]];
         $res = $this->messager->handle(json_encode($message), $destination);
@@ -58,29 +60,37 @@ class Reporter {
 
     }
 
-    private function rpc( $message) {
+    private function rpc($message) {
         $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
                     "params"     => ["topic" => 'veinopen', 'message' => $message]];
-       return tcpPost($message, $this->config['Host'], $this->config['Port']);
-
+        $res = tcpPost(json_encode($message), $this->config['Host'], $this->config['Port']);
+        $res=json_decode($res,true);
+        return ['errcode'=>$res['code'],'errmsg'=>$res['msg']];
     }
 
-    private function queue( $message, $destination = 'default') {
+    private function queue($message, $destination = 'default') {
+        $message = self::buildMessage($message);
         $message = ["msgtype" => "text", "text" => ["content" => $message],
                     "at"      => ["atMobiles" => [], "isAtAll" => false]];
-        if ( !$this->isPassListVolume(self::MESSAGE_LIST)) {
+        if (!$this->isPassListVolume(self::MESSAGE_LIST)) {
             $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
             $res = $this->getRedis()->lPush(self::MESSAGE_LIST, json_encode($content));
         }
-        return $res??false;
+        return $res ?? false;
 
     }
 
 
-    private function buildMessage($message) {
+    private function buildMessage($content) {
         $keywords = $this->keywords;
+        $message = "请求时间:" . $content['time'];
+        $message .= "\n请求URI:" . $content['uri'];
+        $message .= "\n请求异常:" . $content['error'];
+        $message .= "\n请求IP:" . $content['ip'];
+        $message .= "\nID:" . $content['logId'];
+        $message .= "\n请求信息:\n" . $content['info'];
         $message = $keywords . "\n" . $message . "\n";
-        Log::error($message);
+
         return $message;
     }
 
