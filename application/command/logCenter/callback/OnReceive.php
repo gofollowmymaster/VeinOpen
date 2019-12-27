@@ -19,11 +19,10 @@ class OnReceive {
     public function __construct() {
 
     }
-
+    //todo 协议没有检查参数类型
     public function index($server, $fd, $data) {
-        if (!$param = json_decode($data, true)) {
-            throw new WarringException('参数错误:' . $data);
-        }
+        $param=$this->TcpProtocolCheck($data);
+
         $param = ['fd'      => $fd, 'server' => 'tcp', 'time' => time(),
                   'request' => ['controller' => $param['controller'], 'method' => $param['method'],
                                 'params'     => $param['params']]];
@@ -40,6 +39,15 @@ class OnReceive {
         }
 //        output('推送数据结果:'.$res);
 
+    }
+    protected function TcpProtocolCheck(string $data) {
+        if (!$request = json_decode($data, true)) {
+            throw new WarringException('不支持的日志协议:不是json字符串' . $data);
+        }
+        if($lack=array_diff($this->protocolKeys,array_keys($request))){
+            throw new WarringException('不支持的日志协议:缺少关键key:'.implode(',',$lack));
+        }
+        return $request;
     }
 
 

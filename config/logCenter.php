@@ -20,7 +20,7 @@ return [
              "worker_num"=> env('logcenter.swoole_worker_num',1),
              "task_worker_num"=> env('logcenter.swoole_task_worker_num',1),
              "max_request"=>100,"task_max_request"=>100,
-             "daemonize"=>0, 'log_file'=>env('logcenter.swoole_log','mnt/'),
+             "daemonize"=>0, 'log_file'=>'/mnt/'.env('evironment','test').'/log/'.env('logcenter.swoole_log','swoole_log'),
              "package_eof"=>"|end|",
              ],
         ],

@@ -94,12 +94,13 @@ class LogCenter extends Command {
 
         output("{$server->worker_id} {$fd}".'接受数据:'.$data=rtrim($data,$this->swooleConfig['package_eof']));
         try {
+
             $onReceive = new OnReceive();
             $onReceive->index($server,$fd,$data);
         } catch (\Throwable $e) {
-            $this->report('task执行异常:'.$e->getMessage());
-            if (!$res=$server->send($fd,'task执行异常:'.$e->getMessage() )) {
-                output( "receive work finish {$server->worker_id} {$fd} " . '返回信息失败message='.$data);
+            $this->report('请求执行异常:'.$e->getMessage());
+            if (!$res=$server->send($fd,json_encode(['code'=>1,'msg'=>'请求执行异常:'.$e->getMessage()]) )) {
+                output( "receive work finish {$server->worker_id} {$fd} " . '请求执行异常='.$data);
             }
         }finally{
             unset($onReceive);
@@ -135,6 +136,8 @@ class LogCenter extends Command {
     public function onFinish($server, $taskId, $result) {
         output(  $result );
     }
+
+
 
     public function report(string $content){
         try {

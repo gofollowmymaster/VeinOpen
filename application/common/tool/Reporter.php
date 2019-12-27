@@ -29,9 +29,12 @@ class Reporter {
         $this->config = $config[$config['type']];
         $this->handle = $config['type'];
         $this->keywords = $config['keywords'];
+
         if ($config['type'] == 'http') {
             $messager = 'app\common\tool\messager\\' . $this->config['messagerType'];
             $this->messager = new $messager($this->config['groups']);
+        } else {
+            $this->httpConfig = $config['http'];
         }
     }
 
@@ -64,8 +67,8 @@ class Reporter {
         $message = ['controller' => "LogController", 'method' => "consumeFromRequest",
                     "params"     => ["topic" => 'veinopen', 'message' => $message]];
         $res = tcpPost(json_encode($message), $this->config['Host'], $this->config['Port']);
-        $res=json_decode($res,true);
-        return ['errcode'=>$res['code'],'errmsg'=>$res['msg']];
+        $res = json_decode($res, true);
+        return ['errcode' => $res['code'], 'errmsg' => $res['msg']];
     }
 
     private function queue($message, $destination = 'default') {
@@ -73,7 +76,7 @@ class Reporter {
         $message = ["msgtype" => "text", "text" => ["content" => $message],
                     "at"      => ["atMobiles" => [], "isAtAll" => false]];
         if (!$this->isPassListVolume(self::MESSAGE_LIST)) {
-            $content = ['token' => $this->config[$destination]['token'], 'content' => $message];
+            $content = ['token' => $this->httpConfig['groups'][$destination]['token'], 'content' => $message];
             $res = $this->getRedis()->lPush(self::MESSAGE_LIST, json_encode($content));
         }
         return $res ?? false;

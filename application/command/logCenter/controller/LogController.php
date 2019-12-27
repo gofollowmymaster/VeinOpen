@@ -115,9 +115,8 @@ class LogController {
             }
             return $result;
         });
-
     }
-
+    //todo 协议没有检查参数类型
     protected function logProtocolCheck(array $message) {
 
         if($lack=array_diff($this->protocolKeys,array_keys($message))){
