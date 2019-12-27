@@ -14,7 +14,7 @@ use app\common\exception\WarringException;
 
 
 class OnReceive {
-
+    protected $protocolKeys=['controller','method','params'];
 
     public function __construct() {
 

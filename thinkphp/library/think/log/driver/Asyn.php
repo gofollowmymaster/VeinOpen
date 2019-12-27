@@ -64,8 +64,8 @@ class Asyn {
             $res=json_decode($res,true);
         }
         if (!$res || $res['code']) {
-            logToFile('发送Ding消息失败' . ($res['msg'] ?? '').'message='.json_encode($content));
-            throw new \Exception('发送Ding消息失败' . $res['msg'] ??'' );
+            logToFile('异步日志记录失败' . ($res['msg'] ?? '').'message='.json_encode($content));
+            throw new \Exception('异步日志记录失败' . $res['msg'] ??'' );
         }
         return $res;
     }

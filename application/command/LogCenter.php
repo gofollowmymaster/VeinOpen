@@ -98,8 +98,8 @@ class LogCenter extends Command {
             $onReceive = new OnReceive();
             $onReceive->index($server,$fd,$data);
         } catch (\Throwable $e) {
-            $this->report('请求执行异常:'.$e->getMessage());
-            if (!$res=$server->send($fd,json_encode(['code'=>1,'msg'=>'请求执行异常:'.$e->getMessage()]) )) {
+            $this->report('TCP请求执行异常:'.$e->getMessage());
+            if (!$res=$server->send($fd,json_encode(['code'=>1,'msg'=>'TCP请求执行异常:'.$e->getMessage()]) )) {
                 output( "receive work finish {$server->worker_id} {$fd} " . '请求执行异常='.$data);
             }
         }finally{
