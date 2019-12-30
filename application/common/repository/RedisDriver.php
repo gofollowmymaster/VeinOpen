@@ -34,5 +34,17 @@ namespace app\common\repository;
         }
         return $result;
     }
+     protected function buildRedisKey() {
+         $params = func_get_args();
+         $subject = $params[0];
+         unset($params[0]);
+         $params = array_values($params);
+         $pattern = array_fill(0, count($params), '/<<[\w]+>>/');
+         $result = preg_replace($pattern, $params, $subject, 1);
+         if (!$result || strpos('>>', $result)) {
+             throw new WarringException('redis键正则替换异常!' . $subject);
+         }
+         return $result;
+     }
 
 }
