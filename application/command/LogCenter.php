@@ -43,7 +43,7 @@ class LogCenter extends Command {
     }
 
     public function execute(Input $input, Output $output) {
-        $this->server = new \swoole_server('127.0.0.1', 9556);
+        $this->server = new \swoole_server('0.0.0.0', 9556);
 
         $this->server->set(['worker_num'       => $this->swooleConfig['worker_num'],
                             'task_worker_num'  => $this->swooleConfig['task_worker_num'],

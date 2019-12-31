@@ -2,6 +2,8 @@
 
 namespace app\command\logCenter\redis;
 
+use app\common\exception\WarringException;
+
 class RedisDB {
     private $redis;
     private $config;
@@ -24,13 +26,10 @@ class RedisDB {
         // TODO: Implement __call() method.
         $result=  call_user_func_array([$this->redis, $name], $arguments);
         if (false === $result) {
-            serialize($this->redis);
-//            if (!$this->redis->connected) { //断线重连
-//                $this->redis = $this->connect($this->config);
-////                Log::info('mysql reconnect', $res);
-//                $result = call_user_func_array([$this->redis, $name], $arguments);
-//            }
-
+            if (!$this->redis->Ping()) { //断线重连
+                $this->redis = $this->connect($this->config);
+                $result = call_user_func_array([$this->redis, $name], $arguments);
+            }
         }
         return $result;
     }

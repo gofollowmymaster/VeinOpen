@@ -44,6 +44,9 @@ class Reporter {
         try {
             Log::error($message['error']);
             $message['logId'] = Log::getLog('logId');
+            $message['serverIp'] = gethostbyname(gethostname());
+            $message['project']='veinopen';
+            $message['param']=request()->param();
             $handle = $this->handle;
             $res = $this->$handle($message, $destination);
             if (!$res || $res['errcode']) {

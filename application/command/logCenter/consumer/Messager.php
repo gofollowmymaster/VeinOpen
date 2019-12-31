@@ -11,6 +11,7 @@ namespace app\command\logCenter\consumer;
 
 use app\command\logCenter\redis\RedisPool;
 use app\common\exception\ConfigException;
+use app\common\exception\WarringException;
 
 class Messager implements Consumer {
     private $config;
@@ -31,6 +32,7 @@ class Messager implements Consumer {
 
     public function handle(array $message) {
         // TODO: Implement handle() method.
+
         return $this->messageFilter($message, function ($message) {
             $message = $this->messageFormater($message);
             output( 'message send result:' . json_encode($this->driver->handle($message, 'default')) );
@@ -44,16 +46,18 @@ class Messager implements Consumer {
             output( '该消息级别,被消费者过滤:' . $message['logId']);
             return;
         }
-        $featureCode = md5((key_exists('uri', $message) ? $message['uri'] : 'uri') . (key_exists('param', $message) ?
-                json_encode($message['param']) : 'param') . (key_exists('ip', $message) ? json_encode($message['ip']) :
-                'error'));
+        $feature=(key_exists('uri', $message) ? $message['uri'] : 'uri') . (key_exists('param', $message) ?
+                json_encode($message['param']) : 'param') . (key_exists('ip', $message) ? $message['ip'] :
+                'ip');
+        $featureCode = md5($feature);
 
-        if ($this->redis->exists('logCenter:filter:' . $featureCode)) {
+        if ($this->redis->exists('logCenter:messager:filter:' . $featureCode)) {
+            $this->redis->incr('logCenter:messager:filted');
             output("重复消息,已被消费者过滤!" . $message['logId']);
             return;
         }
-        $this->redis->set('logCenter:filter:' . $featureCode, json_encode($message), $this->config['filter']['repeat']);
 
+        $this->redis->set('logCenter:messager:filter:'.$featureCode, true, $this->config['filter']['repeat']);
 
         return $func($message);
     }
@@ -61,7 +65,7 @@ class Messager implements Consumer {
     protected function messageFormater(array $content) {
         $message = "请求时间:" . $content['time'];
         $message .= "\n请求URI:" . $content['uri'];
-        $message .= "\n异常:" . (is_array($content['error'])?json_encode($content['error']):$content['error']);
+        $message .= "\n异常:" . (is_array($content['error'])?json_encode($content['error'],JSON_UNESCAPED_UNICODE):$content['error']);
         $message .= "\n请求IP:" . $content['ip'];
         $message .= "\n服务IP:" . $content['serverIp'];
         $message .= "\n主题:" . $content['project'];

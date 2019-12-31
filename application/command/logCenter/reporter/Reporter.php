@@ -37,7 +37,7 @@ class Reporter {
     }
 
 
-    public function Report(array $message, $destination = 'default') {
+    public function Report(string $message, $destination = 'default') {
 
         try {
             $message = self::buildMessage($message);

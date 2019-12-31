@@ -31,7 +31,7 @@ return [
     'consumers'=>[
         'messager'=>[
             'type'=> env('logcenter.message_type','Ding'),
-            'filter' =>['repeat'=>env('logcenter.repeat'),
+            'filter' =>['repeat'=>(int)env('logcenter.repeat',120),
                         'level'=>explode(',',env('logcenter.level','error,emergency,critical,alert,warning'))],
             "groups" => [
                 'default' => ['enabled'  => true, 'token'    => env('logcenter.messager_default_token','cb3e7d7e0471f87aa853737135d850994d60013e5442460ac57e31635d9d431f'),

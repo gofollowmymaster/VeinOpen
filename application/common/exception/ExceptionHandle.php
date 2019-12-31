@@ -76,6 +76,7 @@ class ExceptionHandle extends Handle {
         }
         $message['error']=$log;
         $message['info']=json_encode(requestInfo());
+        $message['project']='';
         return $message;
     }
 

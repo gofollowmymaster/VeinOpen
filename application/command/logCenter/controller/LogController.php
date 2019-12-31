@@ -15,16 +15,15 @@ use app\common\exception\WarringException;
 use app\command\logCenter\reporter\Reporter;
 use think\facade\Config;
 
-
 class LogController {
-    const MESSAGE_QUEUE = 'logCenter:queue:';
+    const MESSAGE_QUEUE       = 'logCenter:queue:';
     const MESSAGE_DELAY_QUEUE = 'logCenter:zset:';
-    private $protocolKeys=['logId','ip','uri','time','project','serverIp'];
-    private $consumerConfig;
+    private   $protocolKeys = ['logId', 'ip', 'uri', 'time', 'project', 'serverIp', 'param'];
+    private   $consumerConfig;
     protected $reporterConfig;
-    private $topicConsumersMap;
-    private $consumers;
-    private $redis;
+    private   $topicConsumersMap;
+    private   $consumers;
+    private   $redis;
 
 
     //todo  task中做路由分发工作 添加controller模块
@@ -32,7 +31,7 @@ class LogController {
         $config = Config::get('logCenter.');
         $this->topicConsumersMap = $config['topicConsumersMap'];
         $this->consumerConfig = $config['consumers'];
-        $this->reporterConfig=$config['reporter'];
+        $this->reporterConfig = $config['reporter'];
 
     }
 
@@ -55,13 +54,12 @@ class LogController {
             if (!$message || $num > 100) {
                 break;
             }
-            try{
-                output('message处理:' . $message);
+            try {
                 $num++;
                 $this->messageHandles($message);
-            }catch(\Throwable $e){
-                output('消息处理异常:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage()."内容:".$message);
-                $this->report('消息处理异常:'.$e->getMessage()."\n内容:".$message);
+            } catch (\Throwable $e) {
+                output('消息处理异常:文件' . $e->getFile() . ';第' . $e->getLine() . '行;错误信息' . $e->getMessage() . "内容:" . $message);
+                $this->report('消息处理异常:' . $e->getMessage() . "\n内容:" . $message);
             }
 
         }
@@ -103,7 +101,8 @@ class LogController {
         $message = json_decode($message, true);
         //todo  日志协议检查
         $this->logProtocolCheck($message);
-        output('message处理:' . $message['logId']);
+
+        output('message处理:' . json_encode($message));
         return $this->messageFilter($message, function ($message) {
             $result = [];
             foreach ($this->consumers as $consumer) {
@@ -116,23 +115,25 @@ class LogController {
             return $result;
         });
     }
+
     //todo 协议没有检查参数类型
     protected function logProtocolCheck(array $message) {
 
-        if($lack=array_diff($this->protocolKeys,array_keys($message))){
-            throw new WarringException('不支持的日志协议:缺少关键key:'.implode(',',$lack));
+        if ($lack = array_diff($this->protocolKeys, array_keys($message))) {
+            throw new WarringException('不支持的日志协议:缺少关键key:' . implode(',', $lack));
         }
     }
+
     protected function messageFilter(array $message, \Closure $func) {
 
         return $func($message);
     }
 
-    public function report(string $content){
+    public function report(string $content) {
         try {
-            reportLog($content,$this->reporterConfig);
+            reportLog($content, $this->reporterConfig);
         } catch (\Throwable $e) {
-            output('report失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage()."内容:".$content);
+            output('report失败:文件' . $e->getFile() . ';第' . $e->getLine() . '行;错误信息' . $e->getMessage() . "内容:" . $content);
         }
     }
 

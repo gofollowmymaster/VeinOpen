@@ -326,9 +326,9 @@ function report(string $content) {
         $message['uri']=$_SERVER['REQUEST_URI'];
         $message['error']=$content;
         $message['ip'] = getRealIp();
-        $message['serverIp'] = gethostbyname(gethostname());
-        $message['project']='veinopen';
-        $message['info']='通知'.json_encode(requestInfo());
+//        $message['serverIp'] = gethostbyname(gethostname());
+//        $message['project']='veinopen';
+        $message['info']=json_encode(requestInfo());
 
         \app\common\tool\Reporter::getInstance($config)->Report($message);
     } catch (\Throwable $e) {
@@ -374,7 +374,7 @@ function isModelFailed($res, string $message) {
 }
 
 function requestInfo() {
-    return ['request' => request()->param(), 'response' => \app\common\dataset\RequestLog::getInstance()->response, 'user' =>''];
+    return ['response' => \app\common\dataset\RequestLog::getInstance()->response, 'user' =>''];
 }
 
 function    arrayToStr(array $array) {

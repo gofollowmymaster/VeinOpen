@@ -8,7 +8,7 @@ use think\App;
 class Asyn {
 
     const MESSAGE_QUEUE = 'logCenter:queue:';
-    const QUEUE_VOLUME  = 0;
+    const QUEUE_VOLUME  = 1000;
 
 
     private $config = ['messageQueue' => 'redis', 'project' => 'default',];
