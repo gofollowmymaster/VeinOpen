@@ -78,7 +78,8 @@ class Login extends Controller
     }
 
     public function php(){
-        return view(phpinfo());
+        echo  phpinfo();
+        exit;
     }
     public function report(){
         report('yrdy!');
