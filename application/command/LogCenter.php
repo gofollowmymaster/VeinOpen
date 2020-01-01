@@ -214,6 +214,17 @@ class LogCenter extends Command {
             return false;
         }
 
+        $masterPidString = trim(file_get_contents($config['masterPidFile']));
+        $masterPidArr    = explode( '-', $masterPidString);
+        if (!\swoole_process::kill($masterPidArr[0], 0)) {
+            unlink($config['masterPidFile']);
+            unlink($config['managerPidFile']);
+            unlink($config['workerPidFile']);
+            unlink($config['taskPidFile']);
+            output("PID:{$masterPidArr[0]} 不存在!执行清理Pid文件");
+            return false;
+        }
+
         $this->showProcessUI($config);
 
         $masterPidString = trim(@file_get_contents($config['masterPidFile']));
