@@ -130,11 +130,7 @@ class LogController {
     }
 
     public function report(string $content) {
-        try {
-            reportLog($content, $this->reporterConfig);
-        } catch (\Throwable $e) {
-            output('report失败:文件' . $e->getFile() . ';第' . $e->getLine() . '行;错误信息' . $e->getMessage() . "内容:" . $content);
-        }
+        reportLog($content, $this->reporterConfig);
     }
 
     function __destruct() {

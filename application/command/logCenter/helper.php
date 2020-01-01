@@ -16,9 +16,14 @@ if (!function_exists('output')) {
 }
 
 if (!function_exists('reportLog')) {
-    function reportLog(string $msg = '', array $config) {
-        $reporter = Reporter::getInstance($config);
-        $reporter->Report($msg);
+    function reportLog(string $msg = '', array $config = []) {
+        try {
+            $config = $config ?: Config::get('logCenter.reporter.');
+            $reporter = Reporter::getInstance($config);
+            $reporter->Report($msg);
+        } catch (\Throwable $e) {
+            logToFile('report失败:文件' . $e->getFile() . ';第' . $e->getLine() . '行;错误信息' . $e->getMessage() . '内容=' . $msg);
+        }
     }
 }
 
@@ -83,9 +88,11 @@ if (!function_exists('getRealIp')) {
         return $ip;
     }
 }
-
-if (!function_exists('getRealIp')) {
-    function arrayFomat($array){
-//        arrayToStr()
+if (!function_exists('posix_user_name')) {
+    function posix_user_name() {
+        $posix = posix_getpwuid(posix_getuid());
+        return $posix['name'];
     }
 }
+
+
