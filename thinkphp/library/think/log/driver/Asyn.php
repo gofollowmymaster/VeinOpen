@@ -38,7 +38,7 @@ class Asyn {
             $log['project'] = $topic;
             $log['serverIp'] = gethostbyname(gethostname());
             $log['time'] = date('Y-m-d H:i:s', time());
-
+            $log['logId']= $log['logId'][0];
             return $this->send($log, $topic);
         } catch (\Throwable $e) {
             report('写入asyn日志异常:文件' . $e->getFile() . ' 第' . $e->getLine() . '行;' . $e->getMessage());

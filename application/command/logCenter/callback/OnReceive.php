@@ -26,6 +26,7 @@ class OnReceive {
         $param = ['fd'      => $fd, 'server' => 'tcp', 'time' => time(),
                   'request' => ['controller' => $param['controller'], 'method' => $param['method'],
                                 'params'     => $param['params']]];
+
         $rs = $server->task($param);
         if ($rs === false) {
             $return = ['code' => 1, 'msg' => '失败'];

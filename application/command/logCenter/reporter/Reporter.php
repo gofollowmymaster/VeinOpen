@@ -35,17 +35,34 @@ class Reporter {
         }
 
     }
+    private function messageFilter(string $message, \Closure $func) {
 
+        $featureCode = md5($message);
+
+        if ($this->getRedis()->exists('logCenter:reporter:filter:' . $featureCode)) {
+            $this->getRedis()->incr('logCenter:reporter:filted');
+            output("重复通知,已过滤!" . $message);
+            return;
+        }
+
+        $this->getRedis()->set('logCenter:reporter:filter:'.$featureCode, true, 120);
+
+        return $func($message);
+    }
 
     public function Report(string $message, $destination = 'default') {
 
         try {
-            $message = self::buildMessage($message);
-            $handle = $this->handle;
-            $res = $this->$handle($message, $destination);
-            if (!$res || $res['errcode']) {
-                throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
-            }
+            $this->messageFilter($message,function ($message)use($destination){
+                $message = self::buildMessage($message);
+                $handle = $this->handle;
+                $res = $this->$handle($message, $destination);
+                if (!$res || $res['errcode']) {
+                    throw new \Exception('发送Ding消息失败' . $res['errmsg'] ?? '');
+                }
+            });
+
+
         } catch (\Throwable $e) {
             logToFile('发送Ding消息失败:文件'.$e->getFile().';第'.$e->getLine().'行;错误信息'.$e->getMessage(). $e->getMessage(),'reporter');
         }
