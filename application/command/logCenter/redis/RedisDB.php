@@ -16,7 +16,7 @@ class RedisDB {
             throw new \RuntimeException('redis connect fail');
         }
         if (!$redis->auth($config['auth'])) {
-            throw new \RuntimeException('redis auth fail');
+            throw new \RuntimeException('redis auth fail'.json_encode($config));
         }
         $this->config=$config;
         $this->redis=$redis;
