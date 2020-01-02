@@ -83,6 +83,7 @@ class LogCenter extends Command {
     }
 
     private  function start() {
+
         $this->server = new \swoole_server($this->swooleConfig['tcpHost'], $this->swooleConfig['tcpPort']);
 
         $this->server->set($this->swooleConfig['set']);
