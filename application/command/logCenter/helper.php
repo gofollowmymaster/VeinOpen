@@ -31,13 +31,14 @@ if (!function_exists('logToFile')) {
 
     function logToFile($msg, $fileName = 'logCenter') {
         date_default_timezone_set('Asia/Chongqing');
-        $logFile = sprintf("/mnt/online/log/qn-%s.%s.log", $fileName, date('Y-m-d', strtotime("today")));
+        $logPath=env('runtime_path').'log/';
+        $logFile = sprintf($logPath."%s_%s.%s.log", $fileName, date('Y-m-d', strtotime("today")));
         // 判断日志有没有达到2g, 如果达到就用不前时间戳重命名
         $flag = isOutSize($logFile);
         if ($flag) {
             // 重命名文件
             $str = date('Y-m-d', strtotime("today")) . '-' . time();
-            $newName = sprintf("/mnt/online/log/qn-%s.%s.log", $fileName, $str);
+            $newName = sprintf($logPath."%s/%s.%s.log", $fileName, $str);
             rename($logFile, $newName);
         }
         $hostName = phpversion() < "5.3.0" ? $_SERVER['HOSTNAME'] : gethostname();

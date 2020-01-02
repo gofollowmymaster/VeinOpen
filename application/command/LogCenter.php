@@ -311,7 +311,7 @@ class LogCenter extends Command {
                 output("服务关闭成功");
                 break;
             } else {
-                if (time() - $time > 30) {
+                if (time() - $time > 60) {
                     output("服务关闭失败，请重试");
                     break;
                 }

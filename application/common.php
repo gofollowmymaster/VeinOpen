@@ -440,14 +440,15 @@ if (!function_exists('logToFile')) {
 
     function logToFile($msg, $fileName = 'logCenter') {
         $environment=config('app.environment');
+        $logPath=env('runtime_path').'log/';
         date_default_timezone_set('Asia/Chongqing');
-        $logFile = sprintf("/mnt/%s/log/qn-%s.%s.log",$environment, $fileName, date('Y-m-d', strtotime("today")));
+        $logFile = sprintf($logPath."%s_%s.%s.log",$environment, $fileName, date('Y-m-d', strtotime("today")));
         // 判断日志有没有达到2g, 如果达到就用不前时间戳重命名
         $flag = isOutSize($logFile);
         if ($flag) {
             // 重命名文件
             $str = date('Y-m-d', strtotime("today")) . '-' . time();
-            $newName = sprintf("/mnt/%s/log/qn-%s.%s.log",$environment,$fileName, $str);
+            $newName = sprintf($logPath."%s/%s.%s.log",$environment,$fileName, $str);
             rename($logFile, $newName);
         }
         $hostName = phpversion() < "5.3.0" ? $_SERVER['HOSTNAME'] : gethostname();
