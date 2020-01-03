@@ -28,7 +28,7 @@ class Ding extends Messager {
         $token=$this->config[$destination]['token'];
         $url = $this->gate . $token;
         $options['header']=["Content-Type:application/json; charset=utf-8"];
-        $options['timeout']=1;
+        $options['timeout']=5;
         return $this->client->post($url,json_encode($message),$options);
     }
 }
