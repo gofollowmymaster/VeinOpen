@@ -17,7 +17,7 @@ socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array("sec" => 6, "usec" => 
 /****************设置socket连接选项，这两个步骤你可以省略*************/
 
 //连接服务端的套接流，这一步就是使客户端与服务器端的套接流建立联系
-if(socket_connect($socket,'127.0.0.1',9556) == false){
+if(socket_connect($socket,'127.0.0.1',9557) == false){
     echo 'connect fail massege:'.socket_strerror(socket_last_error());
 }else{
     $message = '{"controller":"LogController","method":"consumeFromRequest","params":{"topic":"veinopen","message":{"time":"2019-12-26 16:11:47","uri":"\/manager\/report","error":"yrdy!","info":"{\"request\":[],\"response\":\"\",\"user\":\"\"}"}}}'."|end|";

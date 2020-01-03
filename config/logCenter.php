@@ -17,13 +17,14 @@ return [
              'auth' => env('redis.master_auth', 'secret'),
              ],
          'swoole'=>[
-             "tcpHost"=>env('logcenter.tcphost', '0.0.0.0'),'tcpPort'=>env('logcenter.tcpport', '9556'),
+             "tcpHost"=>env('logcenter.tcphost', '0.0.0.0'),'tcpPort'=>env('logcenter.tcpport', '9557'),
              "set"=>[
                  "worker_num"=> env('logcenter.swoole_worker_num',1),
                  "task_worker_num"=> env('logcenter.swoole_task_worker_num',1),
                  "max_request"=>100,"task_max_request"=>100,"max_connection"=>10000,
                  "daemonize"=>0, 'log_file'=>env('runtime_path').'log/'.env('evironment','test').'_'.env('logcenter.swoole_log','swoole_log'),
                  "package_eof"=>"|end|", "open_eof_check"=>true,'reload_async' => true,
+                 "backlog"=>10000,
              ],
              "masterProcessName"=>"LogCenter-master",
              "managerProcessName"=>"LogCenter-manager",
