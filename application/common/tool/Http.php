@@ -95,7 +95,7 @@ class Http
         list($content, $status) = [curl_exec($curl), curl_getinfo($curl), curl_close($curl)];
         $httpCode=intval($status["http_code"]);
         if($httpCode !== 200){
-            throw new WarringException('HTTP请求状态='.$httpCode.'响应信息='.json_encode($content).':状态详情'.json_encode($status),$httpCode);
+            throw new WarringException('HTTP请求状态='.$httpCode.'响应信息='.is_array($content)?json_encode($content):$content.':状态详情'.json_encode($status),$httpCode);
         }
         return  $content ;
     }
