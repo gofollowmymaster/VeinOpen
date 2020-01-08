@@ -83,10 +83,17 @@ class LogCenter extends Command {
     }
 
     private  function start() {
+        $config=$this->swooleConfig;
+        if (file_exists($config['masterPidFile']) || file_exists($config['managerPidFile']) || file_exists($config['workerPidFile'])) {
+            unlink($config['masterPidFile']);
+            unlink($config['managerPidFile']);
+            unlink($config['workerPidFile']);
+            unlink($config['taskPidFile']);
+        }
 
-        $this->server = new \swoole_server($this->swooleConfig['tcpHost'], $this->swooleConfig['tcpPort']);
+        $this->server = new \swoole_server($config['tcpHost'],$config['tcpPort']);
 
-        $this->server->set($this->swooleConfig['set']);
+        $this->server->set($config['set']);
         $this->server->on('Start', [$this, 'onStart']);
         $this->server->on('ManagerStart', [$this, 'onManagerStart']);
         $this->server->on('WorkerStart', [$this, 'onWorkerStart']);
